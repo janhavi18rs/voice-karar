@@ -1,6 +1,7 @@
-import { Menu, Mic, ShieldCheck, ArrowLeft, Sun, Moon, Globe, Check } from 'lucide-react'
+import { User, Mic, ArrowLeft, Sun, Moon, Globe, Check, LogOut } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import AppIcon from './AppIcon'
 
 const LANGS = [
   { code: 'en', label: 'English' },
@@ -15,7 +16,9 @@ export default function Navbar() {
   const [fontSize, setFontSize] = useState(() => localStorage.getItem('vk-font') || 'large')
   const [lang, setLang] = useState(() => localStorage.getItem('vk-lang') || 'en')
   const [langOpen, setLangOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const langRef = useRef(null)
+  const profileRef = useRef(null)
 
   useEffect(() => {
     if (theme === 'dark') document.documentElement.classList.add('dark')
@@ -37,8 +40,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const onDocClick = (e) => {
-      if (!langRef.current) return
-      if (!langRef.current.contains(e.target)) setLangOpen(false)
+      if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false)
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false)
     }
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
@@ -56,15 +59,15 @@ export default function Navbar() {
             </button>
           ) : (
             <Link to="/dashboard" className="flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-[var(--ink)]/80">
-              <ShieldCheck className="h-4 w-4 text-[var(--seal)]" />
+              <AppIcon size={20} />
               Voice Karar
             </Link>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/record" className="flex items-center gap-2 rounded-none border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2 text-sm">
-            <Mic className="h-4 w-4 text-[var(--seal)]" /> Record
+          <Link to="/create-agreement" className="flex items-center gap-2 rounded-none border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2 text-sm">
+            <Mic className="h-4 w-4 text-[var(--seal)]" /> Create
           </Link>
 
           <div className="relative" ref={langRef}>
@@ -110,9 +113,40 @@ export default function Navbar() {
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <button className="border border-[var(--ledger-line)] bg-[var(--paper)] p-2">
-            <Menu className="h-4 w-4" />
-          </button>
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((s) => !s)}
+              aria-expanded={profileOpen}
+              title="Profile menu"
+              className="border border-[var(--ledger-line)] bg-[var(--paper)] p-2"
+            >
+              <User className="h-4 w-4" />
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-sm border bg-[var(--paper)] shadow-sm z-10">
+                <Link
+                  to="/profile"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border-b border-[var(--ledger-line)] hover:bg-[var(--ledger-line)]/10"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    setProfileOpen(false)
+                    localStorage.removeItem('vk-user')
+                    navigate('/login')
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--seal)] hover:bg-[var(--seal)]/5"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

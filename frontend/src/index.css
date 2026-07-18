@@ -89,6 +89,20 @@ textarea {
   border-radius: 0;
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp-pressed {
+  animation: stampPress 0.45s ease;
+}
+
+@keyframes stampPress {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(2px) scale(0.98); }
+  100% { transform: translateY(0); }
+}
+
 ::selection {
   background: rgba(140, 59, 46, 0.16);
 }

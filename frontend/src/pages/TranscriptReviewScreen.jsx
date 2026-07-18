@@ -43,7 +43,7 @@ export default function TranscriptReviewScreen() {
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
           <header className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/60">Transcript review</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/75">Transcript review</p>
             <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">Review the transcript</h1>
           </header>
 

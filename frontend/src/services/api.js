@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'voicekarar-agreements'
+const AGREEMENTS_KEY = 'voicekarar-agreements'
+const USER_KEY = 'voicekarar-user'
 
 const mockAgreements = [
   {
@@ -11,9 +12,11 @@ const mockAgreements = [
     deliveryDate: '2026-08-10',
     paymentTerms: '50% advance, 50% on delivery',
     specialConditions: 'Bulk packing with company logo',
-    status: 'accepted',
+    status: 'confirmed',
     createdAt: '2026-07-08',
-    agreementLink: 'https://voicekarar.in/agr-101'
+    agreementLink: 'https://voicekarar.in/agr-101',
+    source: 'live',
+    transcriptId: 'tx-1'
   },
   {
     id: 'agr-102',
@@ -25,19 +28,48 @@ const mockAgreements = [
     deliveryDate: '2026-07-24',
     paymentTerms: 'Net 7 days',
     specialConditions: 'Warranty for 3 months',
-    status: 'sent',
+    status: 'pending',
     createdAt: '2026-07-12',
-    agreementLink: 'https://voicekarar.in/agr-102'
+    agreementLink: 'https://voicekarar.in/agr-102',
+    source: 'upload',
+    transcriptId: 'tx-2'
+  },
+  {
+    id: 'agr-103',
+    ownerName: 'Asha Mehta',
+    otherPartyName: 'Sanjay Fabrics',
+    product: 'Cotton shirts',
+    quantity: 500,
+    price: 120,
+    deliveryDate: '2026-07-25',
+    paymentTerms: '50% advance',
+    specialConditions: 'Packed in branded cartons',
+    status: 'needs-changes',
+    createdAt: '2026-07-15',
+    agreementLink: 'https://voicekarar.in/agr-103',
+    source: 'manual',
+    transcriptId: null
   }
 ]
 
+const defaultUser = {
+  name: 'Asha Mehta',
+  businessName: 'Mehta Traders',
+  email: 'asha@mehta.co',
+  mobile: '+919876543210',
+  businessType: 'Trader',
+  businessCategory: 'Textiles',
+  preferredLanguage: 'Hindi',
+  avatarUrl: '',
+  memberSince: '2024-01-12',
+  totalAgreements: 3
+}
+
 const readStoredAgreements = () => {
-  if (typeof window === 'undefined') {
-    return mockAgreements
-  }
+  if (typeof window === 'undefined') return mockAgreements
 
   try {
-    const saved = window.localStorage.getItem(STORAGE_KEY)
+    const saved = window.localStorage.getItem(AGREEMENTS_KEY)
     return saved ? JSON.parse(saved) : mockAgreements
   } catch {
     return mockAgreements
@@ -45,26 +77,37 @@ const readStoredAgreements = () => {
 }
 
 const writeStoredAgreements = (agreements) => {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(AGREEMENTS_KEY, JSON.stringify(agreements))
+}
+
+const readStoredUser = () => {
+  if (typeof window === 'undefined') return defaultUser
+
+  try {
+    const saved = window.localStorage.getItem(USER_KEY)
+    return saved ? JSON.parse(saved) : defaultUser
+  } catch {
+    return defaultUser
   }
-
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(agreements))
 }
 
-export const getAgreements = async () => {
-  // TODO: Replace with real Axios call when backend is available.
-  return Promise.resolve(readStoredAgreements())
+const writeStoredUser = (user) => {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
+
+export const getAgreements = async () => Promise.resolve(readStoredAgreements())
 
 export const createAgreement = async (payload) => {
-  // TODO: Replace with POST /agreements once backend exists.
   const agreement = {
     ...payload,
     id: payload.id || `agr-${Date.now()}`,
     status: 'draft',
     createdAt: new Date().toISOString().split('T')[0],
-    agreementLink: `${typeof window !== 'undefined' ? window.location.origin : 'https://voicekarar.in'}/confirm/${payload.id || `agr-${Date.now()}`}`
+    agreementLink: `${typeof window !== 'undefined' ? window.location.origin : 'https://voicekarar.in'}/confirm/${payload.id || `agr-${Date.now()}`}`,
+    source: payload.source || 'manual',
+    transcriptId: payload.transcriptId || null
   }
 
   const agreements = [...readStoredAgreements(), agreement]
@@ -73,12 +116,11 @@ export const createAgreement = async (payload) => {
 }
 
 export const confirmAgreement = async (id, action, note = '') => {
-  // TODO: Replace with PATCH /agreements/:id/confirm once backend exists.
   const agreements = readStoredAgreements().map((agreement) => {
     if (agreement.id !== id) return agreement
     return {
       ...agreement,
-      status: action === 'accept' ? 'accepted' : action === 'reject' ? 'rejected' : 'modified',
+      status: action === 'accept' ? 'confirmed' : action === 'reject' ? 'rejected' : 'needs-changes',
       note
     }
   })
@@ -89,33 +131,79 @@ export const confirmAgreement = async (id, action, note = '') => {
     id,
     action,
     note,
-    status: action === 'accept' ? 'accepted' : action === 'reject' ? 'rejected' : 'modified'
+    status: action === 'accept' ? 'confirmed' : action === 'reject' ? 'rejected' : 'needs-changes'
   })
 }
 
-export const getAgreementById = async (id) => {
-  // TODO: Replace with GET /agreements/:id when backend is available.
-  const agreement = readStoredAgreements().find((item) => item.id === id)
-  return Promise.resolve(agreement || null)
+export const getAgreementById = async (id) => Promise.resolve(readStoredAgreements().find((item) => item.id === id) || null)
+
+export const signupUser = async (formData) => {
+  const user = {
+    ...defaultUser,
+    ...formData,
+    memberSince: new Date().toISOString().split('T')[0],
+    totalAgreements: 3
+  }
+  writeStoredUser(user)
+  return Promise.resolve({ ok: true, user })
 }
 
-// --- Mock transcript/call upload APIs (swap with real backend) ---
+export const getCurrentUser = async () => Promise.resolve(readStoredUser())
+
+export const updateProfile = async (formData) => {
+  const updatedUser = { ...readStoredUser(), ...formData }
+  writeStoredUser(updatedUser)
+  return Promise.resolve(updatedUser)
+}
+
+export const submitManualEntry = async (text) => {
+  const extractedFields = {
+    supplierName: 'Ramesh Textiles',
+    product: 'Cotton shirts',
+    quantity: 500,
+    price: '₹120 each',
+    deliveryDate: '25 July',
+    paymentTerms: '50% advance',
+    specialConditions: 'Packed in branded cartons'
+  }
+  const missingFields = ['deliveryDate', 'paymentTerms', 'specialConditions']
+  return Promise.resolve({ extractedFields, missingFields })
+}
+
+export const submitFollowUpAnswers = async (answers) => {
+  const current = readStoredAgreements()
+  const agreement = {
+    id: `agr-${Date.now()}`,
+    ownerName: readStoredUser().name,
+    otherPartyName: 'Ramesh Textiles',
+    product: 'Cotton shirts',
+    quantity: 500,
+    price: 120,
+    deliveryDate: answers.deliveryDate || '25 July',
+    paymentTerms: answers.paymentTerms || '50% advance',
+    specialConditions: answers.specialConditions || 'Packed in branded cartons',
+    status: 'pending',
+    createdAt: new Date().toISOString().split('T')[0],
+    agreementLink: `${typeof window !== 'undefined' ? window.location.origin : 'https://voicekarar.in'}/confirm/agr-${Date.now()}`,
+    source: 'manual',
+    transcriptId: null
+  }
+  writeStoredAgreements([agreement, ...current])
+  return Promise.resolve({ ok: true, agreement })
+}
 
 export const uploadCallRecording = async (fileOrBlob) => {
-  // Simulate uploading and return a transcriptId + estimated seconds
   const transcriptId = `tx-${Date.now()}`
   const estimatedProcessingSeconds = 8 + Math.min(60, Math.round((fileOrBlob.size || 0) / (1024 * 1024)))
-  // store a placeholder transcript
-  const transcripts = JSON.parse(window.localStorage.getItem('vk-transcripts') || '{}')
+  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
   transcripts[transcriptId] = { text: 'Transcription in progress... (mock)', highlights: [] }
-  window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
+  if (typeof window !== 'undefined') window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
   return Promise.resolve({ transcriptId, estimatedProcessingSeconds })
 }
 
 export const getTranscript = async (transcriptId) => {
-  const transcripts = JSON.parse(window.localStorage.getItem('vk-transcripts') || '{}')
+  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
   if (transcripts[transcriptId]) return Promise.resolve(transcripts[transcriptId])
-  // fallback mock transcript
   const text = 'Buyer: I agree to buy 500 cotton bags at ₹1800 to be delivered on 10 August. Seller: agreed.'
   const highlights = [
     { text: '500', type: 'quantity', startIndex: text.indexOf('500'), endIndex: text.indexOf('500') + 3 },
@@ -125,8 +213,8 @@ export const getTranscript = async (transcriptId) => {
 }
 
 export const updateTranscript = async (transcriptId, correctedText) => {
-  const transcripts = JSON.parse(window.localStorage.getItem('vk-transcripts') || '{}')
+  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
   transcripts[transcriptId] = { text: correctedText, highlights: [] }
-  window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
+  if (typeof window !== 'undefined') window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
   return Promise.resolve({ transcriptId })
 }
