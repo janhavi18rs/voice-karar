@@ -3,9 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 
 const items = [
   { to: '/dashboard', label: 'Home', icon: Home },
-  { to: '/record', label: 'Record', icon: Mic },
-  { to: '/review', label: 'Review', icon: FileText },
-  { to: '/', label: 'Login', icon: User }
+  { to: '/create-agreement', label: 'Create', icon: Mic },
+  { to: '/agreement-preview', label: 'Preview', icon: FileText },
+  { to: '/profile', label: 'Profile', icon: User }
 ]
 
 export default function MobileBottomNav() {
