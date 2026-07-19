@@ -137,7 +137,8 @@ export class AgreementAgent {
   }
 
   /**
-   * Extracts the list of missing fields from the structured JSON
+   * Extracts the list of missing essential fields from the structured JSON.
+   * Only core fields (parties, purpose, payment) trigger follow-up questions.
    */
   getMissingFields(data: AgreementStructuredData): string[] {
     const missing: string[] = [];
@@ -148,28 +149,12 @@ export class AgreementAgent {
     if (isNotSpecified(data.party_1)) missing.push("Party 1");
     if (isNotSpecified(data.party_2)) missing.push("Party 2");
     if (isNotSpecified(data.agreement_purpose)) missing.push("Agreement Purpose");
-    if (isNotSpecified(data.payment_amount)) missing.push("Payment Amount");
-    if (isNotSpecified(data.payment_terms)) missing.push("Payment Terms");
-    if (isNotSpecified(data.agreement_duration)) missing.push("Agreement Duration");
-    if (isNotSpecified(data.location)) missing.push("Location");
 
-    // Responsibilities
-    const p1Resp = data.responsibilities?.party_1 || [];
-    const p2Resp = data.responsibilities?.party_2 || [];
-    if (p1Resp.length === 0 && p2Resp.length === 0) {
-      missing.push("Responsibilities");
-    }
-
-    // Array fields check
-    const checkArrayField = (arr: string[] | undefined, label: string) => {
-      if (!arr || arr.length === 0 || arr.some(item => isNotSpecified(item))) {
-        missing.push(label);
-      }
-    };
-
-    checkArrayField(data.important_dates, "Important Dates");
-    checkArrayField(data.witnesses, "Witnesses");
-    checkArrayField(data.special_conditions, "Special Conditions");
+    // Consider payment specified if any pricing field is present
+    const hasPayment = !isNotSpecified(data.payment_amount) || 
+                       !isNotSpecified(data.total_amount) || 
+                       !isNotSpecified(data.unit_price);
+    if (!hasPayment) missing.push("Payment Amount");
 
     return missing;
   }
