@@ -7,17 +7,13 @@ export class AgreementAgent {
   private genAI: GoogleGenerativeAI;
   private modelName: string;
 
-  constructor(apiKey?: string, modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash-lite") {
+  constructor(apiKey?: string, modelName?: string) {
     const key = apiKey || process.env.GEMINI_API_KEY;
     if (!key) {
       throw new Error("GEMINI_API_KEY is not defined. Please configure it in your environment or .env.local file.");
     }
     this.genAI = new GoogleGenerativeAI(key);
-    if (!modelName || modelName === "gemini-1.5-flash" || modelName === "gemini-2.5-flash") {
-      this.modelName = "gemini-2.0-flash-lite";
-    } else {
-      this.modelName = modelName;
-    }
+    this.modelName = "gemini-2.0-flash-lite";
   }
 
   /**
