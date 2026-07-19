@@ -5,12 +5,15 @@
 
 :root {
   --base-font-size: 18px; /* larger default for readability */
-  --ink: #1C2B2E;
-  --paper: #F7F5F0;
-  --seal: #8C3B2E;
-  --ledger-line: #C9C2B4;
-  --trust-green: #2F5D50;
+  --ink: #243336;
+  --paper: #fffaf7;
+  --seal: #963a2d;
+  --ledger-line: #e3cfc5;
+  --trust-green: #6e9184;
   --alert-amber: #B8863A;
+  --soft-panel: #fff3ed;
+  --cream-panel: #f6ece6;
+  --muted-ink: #786e68;
   font-family: 'IBM Plex Sans', sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -60,6 +63,10 @@ body {
   color: var(--ink);
 }
 
+a {
+  color: var(--seal);
+}
+
 #root {
   min-height: 100vh;
 }
@@ -86,8 +93,17 @@ textarea {
 input,
 select,
 textarea {
-  border-radius: 0;
+  border-radius: 6px;
 }
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp-pressed {
+  animation: stampPress 0.45s ease;
+}
+
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
@@ -105,4 +121,14 @@ textarea {
 
 ::selection {
   background: rgba(140, 59, 46, 0.16);
+}
+
+/* Hide default browser password reveal and clear indicators (Edge/Chrome/Safari) */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

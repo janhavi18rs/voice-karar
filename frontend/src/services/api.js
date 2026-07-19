@@ -35,13 +35,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only clear the session on 401 if this is NOT a login/register request.
+    // On those endpoints a 401 simply means "wrong credentials" — don't log the user out.
+    const isAuthEndpoint = error.config?.url?.includes('/auth/')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       clearSession()
     }
 
     const message =
       error.response?.data?.message ||
       error.response?.data?.error ||
+      (error.code === 'ERR_NETWORK' ? 'Cannot reach the server. Please make sure the backend is running.' : null) ||
       error.message ||
       'Something went wrong'
     return Promise.reject(new Error(message))

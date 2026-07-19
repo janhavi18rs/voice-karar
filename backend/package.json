@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test:record": "keploy record -c 'npm run dev'",
+    "test:run": "keploy test -c 'npm run dev' --delay 5",
+    "test:record:no-proxy": "keploy record -c 'npm run dev' --noProxy",
+    "test:unit": "echo \"Unit tests not configured\"",
+    "test": "npm run test:run"
   },
   "keywords": [
     "voice-karar",
@@ -27,6 +31,7 @@
     "mongoose": "^8.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "@keploy/sdk": "^0.11.0"
   }
 }

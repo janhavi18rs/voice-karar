@@ -66,6 +66,20 @@ const agreedTermsSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+
+    /** Delivery location e.g. "Ramesh Traders Warehouse, Mumbai" */
+    deliveryLocation: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+
+    /** AI summary of the agreement */
+    summary: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { _id: false } // embedded sub-doc, no separate _id needed
 );

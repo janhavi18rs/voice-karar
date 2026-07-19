@@ -1,19 +1,6 @@
-/**
- * frontend/src/pages/LoginPage.jsx
- *
- * Real email + password login wired to:
- *   POST /api/v1/auth/login
- *
- * On success: JWT + user stored in localStorage, navigate to /dashboard.
- * On failure: inline error message shown.
- */
-
 import { useState } from 'react'
 import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
-import Button from '../components/Button'
-import Card from '../components/Card'
-import Input from '../components/Input'
 import { login } from '../services/api'
 
 export default function LoginPage() {
@@ -23,14 +10,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((c) => ({ ...c, [name]: value }))
     setError('')
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     if (!form.email || !form.password) {
       setError('Please enter your email and password.')
       return
@@ -48,91 +35,154 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between border-b border-[var(--ledger-line)] pb-4">
-          <div className="flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-[var(--ink)]/80">
-            <ShieldCheck className="h-4 w-4 text-[var(--seal)]" />
-            Voice Karar
-          </div>
-          <Link to="/signup" className="text-sm text-[var(--seal)] underline">
-            New here? Create an account
+    <div className="min-h-screen bg-[#fffaf7] text-[#1a1210] overflow-x-hidden">
+      {/* subtle grid */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#e8ddd810_1px,transparent_1px),linear-gradient(to_bottom,#e8ddd810_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+
+      {/* ── NAVBAR ── */}
+      <header className="sticky top-0 z-40 px-6 py-4 bg-[#fffaf7]/90 backdrop-blur-sm border-b border-[#eadbd4]/60">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <button onClick={() => navigate('/')} className="group flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#92372c] text-white shadow-sm group-hover:bg-[#7d2e24] transition-colors">
+              <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />
+            </div>
+            <span className="font-['Source_Serif_4'] text-[22px] font-bold leading-none text-[#1a1210] tracking-tight">
+              Voice Karar
+            </span>
+          </button>
+          <Link
+            to="/signup"
+            className="text-[13.5px] font-semibold text-[#92372c] hover:underline underline-offset-2 transition-all"
+          >
+            New here? Create an account →
           </Link>
-        </header>
+        </div>
+      </header>
 
-        <main className="flex flex-1 items-center py-8">
-          <div className="grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <section className="space-y-6">
-              <div className="inline-flex items-center gap-2 border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2 text-sm uppercase tracking-[0.2em]">
-                <ShieldCheck className="h-4 w-4 text-[var(--seal)]" />
-                Sign in to continue
-              </div>
-              <div className="space-y-3">
-                <h1 className="font-['Source_Serif_4'] text-4xl leading-tight sm:text-5xl">
-                  Welcome back to your trusted agreement desk.
-                </h1>
-                <p className="max-w-xl text-lg text-[var(--ink)]/70">
-                  Sign in with your registered email and password to continue into your dashboard.
-                </p>
-              </div>
-            </section>
+      {/* ── MAIN ── */}
+      <main className="relative z-10 flex min-h-[calc(100vh-65px)] items-center px-6 py-12">
+        <div className="mx-auto w-full max-w-5xl grid gap-6 lg:grid-cols-[1fr_1fr] items-center">
 
-            <section className="w-full max-w-md">
-              <Card tone="stamp" className="border-t-4 border-t-[var(--seal)]">
-                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                  <Input
-                    label="Email address"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
+          {/* Left: Headline */}
+          <div className="flex flex-col gap-7 pt-2">
+            {/* Label */}
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b493d]">
+              Secure Sign In
+            </p>
 
-                  <div className="relative">
-                    <Input
-                      label="Password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={form.password}
+            {/* Heading */}
+            <h1 className="font-['Source_Serif_4'] text-[38px] sm:text-[42px] font-extrabold leading-[1.15] text-[#171513] tracking-tight">
+              Welcome back to your trusted agreement desk.
+            </h1>
+
+            {/* Description */}
+            <p className="text-[16px] leading-[1.85] text-[#736862]">
+              Sign in with your registered email and password to continue managing your business agreements.
+            </p>
+
+            {/* Clean text badges — no emojis */}
+            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-[#eadbd4]/60">
+              {['JWT Secured', 'Works on Mobile', 'Made for India'].map((label) => (
+                <span
+                  key={label}
+                  className="px-3 py-1.5 rounded-full border border-[#e8d5cc] bg-[#faf7f5] text-[12px] font-semibold text-[#8c7e77]"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Login Form */}
+          <div className="relative w-full max-w-md ml-auto">
+            {/* glow */}
+            <div className="absolute -inset-3 bg-gradient-to-br from-[#ffd8d1]/25 to-[#cae8dd]/15 rounded-[28px] blur-2xl pointer-events-none" />
+
+            <div className="relative rounded-[20px] border border-[#e8d5cc] bg-white shadow-xl overflow-hidden">
+              {/* top accent bar */}
+              <div className="h-1 w-full bg-gradient-to-r from-[#92372c] to-[#bc6f62]" />
+
+              <div className="px-8 py-8">
+                <h2 className="font-['Source_Serif_4'] text-2xl font-bold text-[#1a1210] mb-6">Sign In</h2>
+
+                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                  {/* Email */}
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-[#736862] mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      value={form.email}
                       onChange={handleChange}
-                      placeholder="Your password"
-                      autoComplete="current-password"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      className="w-full rounded-lg border border-[#e8d5cc] bg-[#faf7f5] px-4 py-3 text-[14px] text-[#1a1210] placeholder:text-[#bfada5] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-9 text-[var(--ink)]/50 hover:text-[var(--ink)]"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
                   </div>
 
+                  {/* Password */}
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-[#736862] mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={form.password}
+                        onChange={handleChange}
+                        placeholder="Your password"
+                        autoComplete="current-password"
+                        className="w-full rounded-lg border border-[#e8d5cc] bg-[#faf7f5] px-4 py-3 pr-11 text-[14px] text-[#1a1210] placeholder:text-[#bfada5] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b09488] hover:text-[#92372c] transition-colors"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Error */}
                   {error && (
-                    <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
                       {error}
-                    </p>
+                    </div>
                   )}
 
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Signing in…' : 'Sign in'}
-                    {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-                  </Button>
-                </form>
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-[#92372c] hover:bg-[#7d2e24] disabled:bg-[#92372c]/60 text-white font-bold text-[14px] py-3.5 shadow-md hover:shadow-[0_4px_14px_0_rgba(140,59,46,0.35)] active:scale-[0.99] transition-all duration-200"
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Signing in…
+                      </span>
+                    ) : (
+                      <>Sign In <ArrowRight className="h-4 w-4" /></>
+                    )}
+                  </button>
 
-                <p className="mt-4 text-center text-sm text-[var(--ink)]/60">
-                  Don't have an account?{' '}
-                  <Link to="/signup" className="text-[var(--seal)] underline">
-                    Sign up
-                  </Link>
-                </p>
-              </Card>
-            </section>
+                  <p className="text-center text-[13px] text-[#8c7e77]">
+                    Don't have an account?{' '}
+                    <Link to="/signup" className="text-[#92372c] font-semibold hover:underline underline-offset-2">
+                      Sign up free
+                    </Link>
+                  </p>
+                </form>
+              </div>
+            </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

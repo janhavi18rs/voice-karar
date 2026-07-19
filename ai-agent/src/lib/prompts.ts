@@ -19,21 +19,26 @@ Ensure your output is ONLY the JSON object, with no other text, markdown formatt
 
 export const EXTRACTION_PROMPT = `
 You are a highly precise legal information extraction agent. Your job is to extract structured agreement parameters from the provided transcript.
-You must extract the following 11 fields:
+You must extract the following 16 fields:
 1. party_1 (Full name/identity of Party 1 or "Not Specified")
 2. party_2 (Full name/identity of Party 2 or "Not Specified")
 3. agreement_purpose (Goal or purpose of the agreement, e.g. renting a shop, selling a vehicle, or "Not Specified")
-4. payment_amount (Total money to be paid, including currency, or "Not Specified")
-5. payment_terms (How payment is to be made, installment details, security deposits, or "Not Specified")
-6. agreement_duration (Start date, end date, total months/years, or "Not Specified")
-7. responsibilities (A JSON object with:
+4. quantity (Quantity of goods/services purchased or ordered, e.g. 500, or "Not Specified")
+5. unit_price (Unit price of the goods/services, e.g. ₹350, or "Not Specified")
+6. total_amount (Total amount/price of the transaction, e.g. ₹175,000, or "Not Specified")
+7. payment_amount (Total money to be paid, including currency, or "Not Specified")
+8. payment_terms (How payment is to be made, installment details, security deposits, or "Not Specified")
+9. agreement_duration (Start date, end date, total months/years, or "Not Specified")
+10. responsibilities (A JSON object with:
    - party_1: list of responsibilities of Party 1 as string array.
    - party_2: list of responsibilities of Party 2 as string array.
    If no specific responsibilities are stated, keep the arrays empty.)
-8. important_dates (List of key dates like payment deadlines, registration, or "Not Specified" as string array)
-9. witnesses (List of witness names or "Not Specified" as string array)
-10. special_conditions (Overage fees, breach penalties, terminations, or "Not Specified" as string array)
-11. location (City, state, or address where the agreement is executed/takes place, or "Not Specified")
+11. important_dates (List of key dates like payment deadlines, registration, or "Not Specified" as string array)
+12. witnesses (List of witness names or "Not Specified" as string array)
+13. special_conditions (Overage fees, breach penalties, terminations, or "Not Specified" as string array)
+14. location (City, state, or address where the agreement is executed/takes place, or "Not Specified")
+15. delivery_location (Address or warehouse location where goods should be delivered, or "Not Specified")
+16. summary (A brief, professional, AI-generated one-to-two sentence summary of the deal, e.g. "The AI identified an agreement where...", or "Not Specified")
 
 CRITICAL INSTRUCTIONS:
 - You must strictly use facts present in the transcript.
@@ -46,6 +51,9 @@ JSON output format:
   "party_1": "...",
   "party_2": "...",
   "agreement_purpose": "...",
+  "quantity": "...",
+  "unit_price": "...",
+  "total_amount": "...",
   "payment_amount": "...",
   "payment_terms": "...",
   "agreement_duration": "...",
@@ -56,9 +64,10 @@ JSON output format:
   "important_dates": ["..."],
   "witnesses": ["..."],
   "special_conditions": ["..."],
-  "location": "..."
+  "location": "...",
+  "delivery_location": "...",
+  "summary": "..."
 }
-
 Ensure your output is ONLY the JSON object, with no other text, markdown formatting, or surrounding characters. Do not wrap in markdown block backticks.
 `;
 

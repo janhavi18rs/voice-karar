@@ -1,6 +1,6 @@
 export default function Input({ label, value, onChange, placeholder, className = '', type = 'text', name, ...props }) {
   return (
-    <label className="block text-sm font-semibold uppercase tracking-[0.16em] text-[var(--ink)]/80">
+    <label className="block text-sm font-bold uppercase tracking-[0.22em] text-[var(--ink)]/85">
       <span className="mb-2 block">{label}</span>
       <input
         name={name}
@@ -8,7 +8,7 @@ export default function Input({ label, value, onChange, placeholder, className =
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-3 text-base text-[var(--ink)] outline-none ${className}`}
+        className={`w-full rounded-md border border-[var(--ledger-line)] bg-white px-4 py-4 text-base font-semibold tracking-[0.08em] text-[var(--ink)] outline-none transition focus:border-[var(--seal)] focus:bg-[#f3e1d2]/35 ${className}`}
         {...props}
       />
     </label>

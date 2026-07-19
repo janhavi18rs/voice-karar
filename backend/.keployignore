@@ -1,0 +1,36 @@
+# Keploy ignore file
+# Patterns here are excluded from test recording
+
+# Environment and sensitive files
+.env
+.env.local
+.env.*.local
+*.log
+node_modules/
+dist/
+build/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Database files (we use test database)
+*.db
+*.sqlite
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache
+.cache/
+.npm/
+.yarn/
+
+# Unnecessary routes for testing
+/api/health

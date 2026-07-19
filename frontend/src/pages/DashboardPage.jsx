@@ -75,14 +75,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+    <div className="min-h-screen border-[6px] border-[#5543d8] bg-[var(--paper)] text-[var(--ink)]">
       <Navbar />
-      <div className="px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="px-7 py-9">
+        <div className="mx-auto flex max-w-7xl flex-col gap-7">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/75">Voice Karar</p>
-              <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-[var(--seal)]">Voice Karar</p>
+              <h1 className="mt-2 font-['Source_Serif_4'] text-4xl font-bold sm:text-5xl">
                 Welcome back, {user?.name?.split(' ')[0] || 'there'}
               </h1>
               <p className="mt-2 text-sm text-[var(--ink)]/80">{user?.email || ''}</p>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
               <div className="relative">
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--seal)]"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--ledger-line)] bg-white text-[var(--seal)]"
                 >
                   <UserRound className="h-5 w-5" />
                 </button>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                   <button
                     key={value}
                     onClick={() => setFilter(value)}
-                    className={`border px-3 py-2 text-sm uppercase tracking-[0.16em] ${filter === value ? 'border-[var(--seal)] bg-[var(--seal)] text-[var(--paper)]' : 'border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--ink)]/70'}`}
+                    className={`rounded-md border px-3 py-2 text-sm uppercase tracking-[0.16em] ${filter === value ? 'border-[var(--seal)] bg-[var(--seal)] text-white' : 'border-[var(--ledger-line)] bg-white text-[var(--ink)]/70'}`}
                   >
                     {value === 'all' ? 'All' : value === 'needs-changes' ? 'Needs Changes' : value.charAt(0).toUpperCase() + value.slice(1)}
                   </button>
@@ -186,7 +186,7 @@ export default function DashboardPage() {
                       ? new Date(agreement.createdAt).toLocaleDateString('en-IN')
                       : ''
                     return (
-                      <div key={id} className="border border-[var(--ledger-line)] bg-[var(--paper)] p-4">
+                      <div key={id} className="rounded-md border border-[var(--ledger-line)] bg-[#fffaf7] p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -224,17 +224,17 @@ export default function DashboardPage() {
               </p>
               <div className="mt-4 space-y-3">
                 {stats.pending > 0 && (
-                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
+                    <div className="rounded-md border border-[var(--ledger-line)] bg-[#fffaf7] p-3 text-sm">
                     <p className="font-semibold">{stats.pending} agreement{stats.pending > 1 ? 's' : ''} waiting for buyer confirmation</p>
                   </div>
                 )}
                 {stats.needsChanges > 0 && (
-                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
+                    <div className="rounded-md border border-[var(--ledger-line)] bg-[#fffaf7] p-3 text-sm">
                     <p className="font-semibold">{stats.needsChanges} agreement{stats.needsChanges > 1 ? 's need' : ' needs'} your review</p>
                   </div>
                 )}
                 {stats.pending === 0 && stats.needsChanges === 0 && !loading && (
-                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm text-[var(--ink)]/60">
+                  <div className="rounded-md border border-[var(--ledger-line)] bg-[#fffaf7] p-3 text-sm text-[var(--ink)]/60">
                     <p>All agreements are up to date.</p>
                   </div>
                 )}

@@ -185,6 +185,9 @@ export class AgreementAgent {
       party_1: isNotSpecified(data.party_1),
       party_2: isNotSpecified(data.party_2),
       agreement_purpose: isNotSpecified(data.agreement_purpose),
+      quantity: isNotSpecified(data.quantity),
+      unit_price: isNotSpecified(data.unit_price),
+      total_amount: isNotSpecified(data.total_amount),
       payment_amount: isNotSpecified(data.payment_amount),
       payment_terms: isNotSpecified(data.payment_terms),
       agreement_duration: isNotSpecified(data.agreement_duration),
@@ -196,6 +199,8 @@ export class AgreementAgent {
       witnesses: Array.isArray(data.witnesses) ? data.witnesses.map(w => isNotSpecified(w)) : ["Not Specified"],
       special_conditions: Array.isArray(data.special_conditions) ? data.special_conditions.map(s => isNotSpecified(s)) : ["Not Specified"],
       location: isNotSpecified(data.location),
+      delivery_location: isNotSpecified(data.delivery_location),
+      summary: isNotSpecified(data.summary),
     };
   }
 
