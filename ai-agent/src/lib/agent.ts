@@ -42,27 +42,57 @@ export class AgreementAgent {
     }
   }
 
-  private async generateJson<T>(systemInstruction: string, promptContent: string): Promise<T> {
-    const model = this.genAI.getGenerativeModel({
-      model: this.modelName,
-      systemInstruction: systemInstruction,
-    }, { timeout: 45000 });
+  private async executeWithModelFallback<T>(
+    systemInstruction: string,
+    executeFn: (model: any) => Promise<T>
+  ): Promise<T> {
+    const candidateModels = [
+      this.modelName,
+      "gemini-2.0-flash",
+      "gemini-1.5-flash-latest",
+      "gemini-2.0-flash-exp",
+      "gemini-1.5-pro",
+      "gemini-1.5-flash",
+    ].filter((v, i, a) => v && a.indexOf(v) === i);
 
-    const result = await this.withRetry(() => model.generateContent({
-      contents: [{ role: "user", parts: [{ text: promptContent }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.1, // low temperature for precise extraction/detection
-      },
-    }));
-
-    const text = result.response.text();
-    try {
-      return JSON.parse(text) as T;
-    } catch (error) {
-      console.error("Failed to parse Gemini JSON response:", text);
-      throw new Error("Invalid response format received from AI model.");
+    let lastError: any = null;
+    for (const m of candidateModels) {
+      try {
+        const model = this.genAI.getGenerativeModel(
+          { model: m, systemInstruction },
+          { timeout: 45000 }
+        );
+        return await this.withRetry(() => executeFn(model));
+      } catch (err: any) {
+        const errMsg = String(err?.message || "");
+        if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("not supported")) {
+          console.warn(`[Agent Model Fallback] Model ${m} failed (404/unsupported), trying next candidate...`);
+          lastError = err;
+          continue;
+        }
+        throw err;
+      }
     }
+    throw lastError || new Error("All Gemini model candidates failed.");
+  }
+
+  private async generateJson<T>(systemInstruction: string, promptContent: string): Promise<T> {
+    return this.executeWithModelFallback<T>(systemInstruction, async (model) => {
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: promptContent }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      const text = result.response.text();
+      try {
+        return JSON.parse(text) as T;
+      } catch (error) {
+        console.error("Failed to parse Gemini JSON response:", text);
+        throw new Error("Invalid response format received from AI model.");
+      }
+    });
   }
 
   /**
@@ -118,22 +148,21 @@ export class AgreementAgent {
       throw new Error(`Output language '${outputLanguage}' is not supported.`);
     }
 
-    const model = this.genAI.getGenerativeModel({
-      model: this.modelName,
-      systemInstruction: GENERATION_PROMPT
-        .replace(/{output_language}/g, langConfig.name)
-        .replace(/{legal_style_instruction}/g, langConfig.legalStyleInstruction),
-    }, { timeout: 15000 });
+    const systemInstruction = GENERATION_PROMPT
+      .replace(/{output_language}/g, langConfig.name)
+      .replace(/{legal_style_instruction}/g, langConfig.legalStyleInstruction);
 
     const dataString = JSON.stringify(data, null, 2);
-    const result = await this.withRetry(() => model.generateContent({
-      contents: [{ role: "user", parts: [{ text: dataString }] }],
-      generationConfig: {
-        temperature: 0.3, // slightly higher temperature for legal drafting flow
-      },
-    }));
 
-    return result.response.text();
+    return this.executeWithModelFallback<string>(systemInstruction, async (model) => {
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: dataString }] }],
+        generationConfig: {
+          temperature: 0.3,
+        },
+      });
+      return result.response.text();
+    });
   }
 
   /**
@@ -202,28 +231,26 @@ export class AgreementAgent {
     else if (raw.includes("aac")) cleanMime = "audio/aac";
     else if (raw.includes("flac")) cleanMime = "audio/flac";
 
-    const model = this.genAI.getGenerativeModel({
-      model: this.modelName,
-      systemInstruction: "You are an expert audio transcriber. Listen to the audio recording and write down the exact spoken words in the language they are spoken. Return only the transcription text. Do not add any summary, notes, or explanation.",
-    }, { timeout: 45000 });
+    const systemInstruction = "You are an expert audio transcriber. Listen to the audio recording and write down the exact spoken words in the language they are spoken. Return only the transcription text. Do not add any summary, notes, or explanation.";
 
-    const result = await this.withRetry(() => model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              inlineData: {
-                data: audioBase64,
-                mimeType: cleanMime
-              }
-            },
-            { text: "Please transcribe this audio." }
-          ]
-        }
-      ]
-    }));
-
-    return result.response.text().trim();
+    return this.executeWithModelFallback<string>(systemInstruction, async (model) => {
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inlineData: {
+                  data: audioBase64,
+                  mimeType: cleanMime
+                }
+              },
+              { text: "Please transcribe this audio." }
+            ]
+          }
+        ]
+      });
+      return result.response.text().trim();
+    });
   }
 }
