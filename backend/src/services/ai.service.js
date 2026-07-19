@@ -24,19 +24,20 @@ const firstUseful = (...values) => {
 
 const extractWithFallback = (transcript = '') => {
   const text = normalizeText(transcript);
-  const quantity = numberFrom(text.match(/\b(\d+)\s+(?:pieces|pcs|bags|shirts|units|kg|boxes)?/i)?.[1]);
-  const priceMatch = text.match(/(?:rs\.?|inr|₹)\s?([\d,]+(?:\.\d+)?)/i) || text.match(/([\d,]+(?:\.\d+)?)\s*(?:rupees|rs)/i);
+  const qtyMatch = text.match(/\b(\d+)\b/);
+  const quantity = qtyMatch ? Number(qtyMatch[1]) : undefined;
+  const priceMatch = text.match(/(?:rs\.?|inr|₹)\s?([\d,]+(?:\.\d+)?)/i) || text.match(/([\d,]+(?:\.\d+)?)\s*(?:rupees|rs|per unit|\/unit)/i);
   const price = priceMatch ? Number(priceMatch[1].replace(/,/g, '')) : undefined;
-  const partyMatch = text.match(/(?:with|from|to)\s+([A-Z][A-Za-z\s&.-]{2,40}?)(?:\s+to|\s+for|\s+will|\s+on|\.|,|$)/);
-  const productMatch = text.match(/(?:supply|buy|purchase|deliver|sell)\s+(?:\d+\s+)?([A-Za-z\s-]{3,50}?)(?:\s+for|\s+at|\s+by|\.|,|$)/i);
-  const deliveryMatch = text.match(/(?:delivery|deliver(?:ed)?)(?:\s+will\s+be|\s+by|\s+on|.*?\s+on)?\s+([0-9]{1,2}\s+[A-Za-z]+(?:\s+[0-9]{4})?|[0-9]{4}-[0-9]{2}-[0-9]{2})/i);
+  const partyMatch = text.match(/(?:with|from|to|between)\s+([A-Z][A-Za-z0-9\s&.-]{2,40}?)(?:\s+to|\s+for|\s+will|\s+on|\.|,|$)/i);
+  const productMatch = text.match(/(?:supply|buy|purchase|deliver|sell|providing)\s+(?:\d+\s+)?([A-Za-z0-9\s-]{3,50}?)(?:\s+to|\s+for|\s+at|\s+by|\.|,|$)/i);
+  const deliveryMatch = text.match(/(?:delivery|deliver(?:ed)?|by)(?:\s+will\s+be|\s+by|\s+on|.*?\s+on)?\s+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s+[0-9]{4})?|[0-9]{4}-[0-9]{2}-[0-9]{2})/i);
   const paymentMatch = text.match(/(\d+%\s+advance(?:,\s*\d+%\s+on\s+delivery)?|net\s+\d+\s+days|full payment[^.]*|payment[^.]*)/i);
   const locationMatch = text.match(/(?:delivered?\s+to|warehouse\s+in|located\s+in|at)\s+([A-Z][A-Za-z\s,.-]{2,60}?)(?:\.|,|$)/i);
   const conditionMatch = text.match(/(?:damaged|replacement|penalty|fine|conditions?)[^.]*\./i);
 
   const party1 = 'Agreement Creator';
   const party2 = normalizeText(partyMatch?.[1]) || 'Counterparty';
-  const product = normalizeText(productMatch?.[1]) || 'Commercial Deal';
+  const product = normalizeText(productMatch?.[1]) || 'Commercial Supply Agreement';
   const paymentAmount = price ? `INR ${price}` : 'Not Specified';
   const paymentTerms = normalizeText(paymentMatch?.[1]) || 'Not Specified';
   const deliveryDate = normalizeText(deliveryMatch?.[1]) || 'Not Specified';
