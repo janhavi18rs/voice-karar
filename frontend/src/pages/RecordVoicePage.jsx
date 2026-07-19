@@ -23,6 +23,8 @@ export default function RecordVoicePage() {
   const animationRef = useRef(null)
   const streamRef = useRef(null)
   const audioContextRef = useRef(null)
+  const recognitionRef = useRef(null)
+  const transcriptRef = useRef('')
 
   useEffect(() => {
     return () => {
@@ -74,6 +76,28 @@ export default function RecordVoicePage() {
       return
     }
 
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition()
+        recognition.continuous = true
+        recognition.interimResults = true
+        recognition.lang = 'en-US'
+        transcriptRef.current = ''
+        recognition.onresult = (event) => {
+          let text = ''
+          for (let i = 0; i < event.results.length; i++) {
+            text += event.results[i][0].transcript + ' '
+          }
+          transcriptRef.current = text.trim()
+        }
+        recognition.start()
+        recognitionRef.current = recognition
+      } catch (e) {
+        console.warn('SpeechRecognition error:', e)
+      }
+    }
+
     const chunks = []
     audioChunksRef.current = chunks
     const recorder = new MediaRecorder(streamRef.current)
@@ -96,8 +120,17 @@ export default function RecordVoicePage() {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
       if (audioContextRef.current) audioContextRef.current.close()
       if (streamRef.current) streamRef.current.getTracks().forEach((track) => track.stop())
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop() } catch {}
+      }
       const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-      navigate('/processing', { state: { audio: blob, source: 'live' } })
+      navigate('/processing', {
+        state: {
+          audio: blob,
+          text: transcriptRef.current || undefined,
+          source: 'live',
+        },
+      })
     }
 
     mediaRecorderRef.current.stop()

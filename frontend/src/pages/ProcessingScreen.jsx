@@ -84,6 +84,7 @@ export default function ProcessingScreen() {
           payload = await generateAgreement({
             audio: audioBase64,
             audioMimeType,
+            transcript: text || undefined,
             source: source || 'live',
             outputLanguage: 'English',
           })
