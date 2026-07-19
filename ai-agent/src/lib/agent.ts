@@ -7,7 +7,7 @@ export class AgreementAgent {
   private genAI: GoogleGenerativeAI;
   private modelName: string;
 
-  constructor(apiKey?: string, modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash") {
+  constructor(apiKey?: string, modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash-lite") {
     const key = apiKey || process.env.GEMINI_API_KEY;
     if (!key) {
       throw new Error("GEMINI_API_KEY is not defined. Please configure it in your environment or .env.local file.");
@@ -30,9 +30,9 @@ export class AgreementAgent {
         status === 400 &&
         (details.includes("API_KEY_INVALID") || errMsg.includes("API key not valid"));
 
-      const is404 = status === 404 || errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("not supported");
+      const is404Or429 = status === 404 || status === 429 || errMsg.includes("404") || errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("not found") || errMsg.includes("not supported");
 
-      if (isInvalidApiKey || is404) {
+      if (isInvalidApiKey || is404Or429) {
         throw error;
       }
 
@@ -51,6 +51,7 @@ export class AgreementAgent {
   ): Promise<T> {
     const candidateModels = [
       this.modelName,
+      "gemini-2.0-flash-lite",
       "gemini-2.0-flash",
       "gemini-1.5-flash-latest",
       "gemini-2.0-flash-exp",
@@ -68,8 +69,8 @@ export class AgreementAgent {
         return await this.withRetry(() => executeFn(model));
       } catch (err: any) {
         const errMsg = String(err?.message || "");
-        if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("not supported")) {
-          console.warn(`[Agent Model Fallback] Model ${m} failed (404/unsupported), trying next candidate...`);
+        if (errMsg.includes("404") || errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("not found") || errMsg.includes("not supported")) {
+          console.warn(`[Agent Model Fallback] Model ${m} failed (${errMsg.slice(0, 100)}), trying next candidate...`);
           lastError = err;
           continue;
         }
