@@ -157,7 +157,7 @@ export const getAgreementById = async (agreementId, userId) => {
  *
  * @param {string} agreementId
  * @param {string} userId
- * @param {object} updates - { title?, agreedTerms? }
+ * @param {object} updates - { title?, agreedTerms?, counterParty? }
  * @returns {Promise<Agreement>}
  */
 export const updateAgreement = async (agreementId, userId, updates) => {
@@ -182,6 +182,13 @@ export const updateAgreement = async (agreementId, userId, updates) => {
     agreement.agreedTerms = {
       ...agreement.agreedTerms.toObject(),
       ...updates.agreedTerms,
+    };
+  }
+
+  if (updates.counterParty) {
+    agreement.counterParty = {
+      ...(agreement.counterParty?.toObject?.() || agreement.counterParty || {}),
+      ...updates.counterParty,
     };
   }
 

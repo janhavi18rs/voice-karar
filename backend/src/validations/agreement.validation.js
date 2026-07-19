@@ -60,6 +60,10 @@ export const updateAgreementSchema = {
       required: false,
       type: 'object',
     },
+    counterParty: {
+      required: false,
+      type: 'object',
+    },
   },
 };
 
