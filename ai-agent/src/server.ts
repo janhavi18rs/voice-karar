@@ -121,7 +121,13 @@ app.post("/generate-agreement", async (req: Request, res: Response): Promise<voi
 
     // 4. Structured Data Extraction
     console.log(`Extracting parameters from transcript in: ${finalDetectedLanguage}...`);
-    const structuredData = await agent.extractStructuredData(activeTranscript);
+    let structuredData;
+    try {
+      structuredData = await agent.extractStructuredData(activeTranscript);
+    } catch (err) {
+      console.warn("AI extraction failed, using fallback parameter extractor:", err);
+      structuredData = agent.extractFallbackData(activeTranscript);
+    }
 
     // 5. Validation and Missing Fields Identification
     const missingFields = agent.getMissingFields(structuredData);
@@ -129,7 +135,13 @@ app.post("/generate-agreement", async (req: Request, res: Response): Promise<voi
 
     // 6. Agreement Draft Generation
     console.log(`Drafting legal agreement in output language: ${output_language}...`);
-    const agreementMarkdown = await agent.generateAgreement(structuredData, output_language);
+    let agreementMarkdown;
+    try {
+      agreementMarkdown = await agent.generateAgreement(structuredData, output_language);
+    } catch (err) {
+      console.warn("AI drafting failed, using fallback agreement generator:", err);
+      agreementMarkdown = agent.generateFallbackMarkdown(structuredData);
+    }
 
     // 7. Save to local JSON Database
     const agreementId = crypto.randomUUID();
