@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowRight, Check, ShieldCheck, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Check, Mic, Eye, EyeOff } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../services/api'
 
@@ -75,9 +75,9 @@ export default function SignupPage() {
   }
 
   const inputClass = (field) =>
-    `w-full rounded-lg border ${errors[field] ? 'border-[#92372c] bg-red-50/30' : 'border-[#e8d5cc] bg-[#faf7f5]'} px-4 py-3 text-[14px] text-[#1a1210] placeholder:text-[#bfada5] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all`
+    `w-full rounded-lg border ${errors[field] ? 'border-[#92372c] bg-red-50/30' : 'border-[#e8d5cc] bg-[#faf7f5]'} px-4 py-2 text-[14px] text-[#1a1210] placeholder:text-[#bfada5] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all`
 
-  const selectClass = `w-full rounded-lg border border-[#e8d5cc] bg-[#faf7f5] px-4 py-3 text-[14px] text-[#1a1210] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all appearance-none`
+  const selectClass = `w-full rounded-lg border border-[#e8d5cc] bg-[#faf7f5] px-4 py-2 text-[14px] text-[#1a1210] outline-none focus:border-[#92372c] focus:ring-2 focus:ring-[#92372c]/10 transition-all appearance-none`
 
   const Label = ({ children }) => (
     <span className="block text-[11px] font-bold uppercase tracking-[0.16em] text-[#736862] mb-2">{children}</span>
@@ -91,13 +91,13 @@ export default function SignupPage() {
       <div className="fixed inset-0 bg-[linear-gradient(to_right,#e8ddd810_1px,transparent_1px),linear-gradient(to_bottom,#e8ddd810_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
       {/* ── NAVBAR ── */}
-      <header className="sticky top-0 z-40 px-6 py-4 bg-[#fffaf7]/90 backdrop-blur-sm border-b border-[#eadbd4]/60">
+      <header className="sticky top-0 z-40 px-6 py-5 bg-[#fffaf7]/95 border-b border-[#eadbd4]/60">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <button onClick={() => navigate('/')} className="group flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#92372c] text-white shadow-sm group-hover:bg-[#7d2e24] transition-colors">
-              <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />
+          <button onClick={() => navigate('/')} className="group flex items-center gap-5">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#a33a2f] text-white shadow-lg shadow-[#a33a2f]/20 group-hover:bg-[#92372c] transition-colors">
+              <Mic className="h-7 w-7" />
             </div>
-            <span className="font-['Source_Serif_4'] text-[22px] font-bold leading-none text-[#1a1210] tracking-tight">
+            <span className="font-['Source_Serif_4'] text-4xl font-extrabold leading-none text-[#171513] tracking-tight">
               Voice Karar
             </span>
           </button>
@@ -112,22 +112,22 @@ export default function SignupPage() {
 
       {/* ── MAIN ── */}
       <main className="relative z-10 px-6 py-12">
-        <div className="mx-auto w-full max-w-7xl grid gap-16 lg:grid-cols-[1fr_1.1fr] items-start">
+        <div className="mx-auto grid w-full max-w-7xl items-start gap-16 lg:grid-cols-[1fr_0.96fr]">
 
           {/* Left: Headline */}
-          <div className="max-w-[500px] lg:sticky lg:top-24 pt-4 flex flex-col gap-7">
+          <div className="max-w-2xl lg:sticky lg:top-24 pt-4 flex flex-col gap-9">
             {/* Badge */}
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b493d]">
+            <p className="text-[14px] font-bold uppercase tracking-[0.24em] text-[#9b493d]">
               Built for Indian MSMEs
             </p>
 
             {/* Heading */}
-            <h1 className="font-['Source_Serif_4'] text-[38px] sm:text-[42px] font-extrabold leading-[1.15] text-[#171513] tracking-tight">
+            <h1 className="font-['Source_Serif_4'] text-[54px] font-extrabold leading-[1.12] text-[#171513] tracking-tight xl:text-[62px]">
               Set up your account as a business owner.
             </h1>
 
             {/* Description */}
-            <p className="text-[16px] leading-[1.85] text-[#736862]">
+            <p className="max-w-2xl text-[20px] leading-9 text-[#736862]">
               Your preferred language and business context help every agreement feel natural — from the very first conversation.
             </p>
 
@@ -138,7 +138,7 @@ export default function SignupPage() {
                 'Supports Hindi, Gujarati, Tamil & more',
                 'Buyers confirm digitally — no chasing needed',
               ].map((item) => (
-                <li key={item} className="flex items-start gap-3.5 text-[15px] leading-relaxed text-[#736862]">
+                <li key={item} className="flex items-start gap-4 text-[18px] leading-8 text-[#736862]">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef7f3] border border-[#b8dece]">
                     <Check className="h-3 w-3 text-[#4d9178]" strokeWidth={3} />
                   </span>
@@ -149,7 +149,7 @@ export default function SignupPage() {
           </div>
 
           {/* Right: Form Card */}
-          <div className="relative w-full">
+          <div className="relative ml-auto w-full max-w-[640px]">
             {/* glow */}
             <div className="absolute -inset-3 bg-gradient-to-br from-[#ffd8d1]/20 to-[#cae8dd]/10 rounded-[28px] blur-2xl pointer-events-none" />
 
@@ -157,10 +157,10 @@ export default function SignupPage() {
               {/* top accent */}
               <div className="h-1 w-full bg-gradient-to-r from-[#92372c] to-[#bc6f62]" />
 
-              <div className="px-8 py-8">
-                <h2 className="font-['Source_Serif_4'] text-2xl font-bold text-[#1a1210] mb-7">Create your account</h2>
+              <div className="px-6 py-6">
+                <h2 className="font-['Source_Serif_4'] text-2xl font-bold text-[#1a1210] mb-10">Create your account</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-3.5">
                   {/* Name + Business Name */}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -314,7 +314,7 @@ export default function SignupPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-[#92372c] hover:bg-[#7d2e24] disabled:bg-[#92372c]/60 text-white font-bold text-[14px] py-3.5 shadow-md hover:shadow-[0_4px_14px_0_rgba(140,59,46,0.35)] active:scale-[0.99] transition-all duration-200"
+                    className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-[#92372c] hover:bg-[#7d2e24] disabled:bg-[#92372c]/60 text-white font-bold text-[14px] py-3 shadow-md hover:shadow-[0_4px_14px_0_rgba(140,59,46,0.35)] active:scale-[0.99] transition-all duration-200"
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">

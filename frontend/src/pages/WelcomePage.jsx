@@ -9,12 +9,12 @@ import {
   ShieldCheck,
   Sparkles,
   Play,
-  Pause,
   RotateCcw,
   Check,
-  FileText,
+  CheckCircle2,
   Volume2,
   Languages,
+  X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -83,7 +83,9 @@ export default function WelcomePage() {
   }, [])
 
   // Start the interactive simulation
-  const startDemo = () => {
+  const startDemo = (event) => {
+    event?.preventDefault()
+    event?.stopPropagation()
     // Reset state
     setDemoState('playing')
     setTypewrittenText('')
@@ -107,7 +109,7 @@ export default function WelcomePage() {
     }, 35)
   }
 
-  // Simulate AI extraction one by one
+  // Simulate AI extraction one by one, then transition to draft state
   const simulateExtraction = () => {
     let currentFieldIndex = 0
     timerRef.current = setInterval(() => {
@@ -116,16 +118,13 @@ export default function WelcomePage() {
         currentFieldIndex++
       } else {
         clearInterval(timerRef.current)
-        // Transition to draft ready state
+        setActiveExtractedIndex(extractedFields.length - 1)
+        // Transition to draft preview after a short pause
         setTimeout(() => {
           setDemoState('draft')
-        }, 1200)
+        }, 900)
       }
     }, 700)
-  }
-
-  const handleConfirmDemo = () => {
-    setDemoState('confirmed')
   }
 
   const resetDemo = () => {
@@ -135,6 +134,15 @@ export default function WelcomePage() {
     if (timerRef.current) clearInterval(timerRef.current)
   }
 
+  // Called when user clicks "Sign & Accept Agreement" in the demo — stays on page
+  const handleConfirmDemo = (e) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setDemoState('confirmed')
+  }
+
+  const extractionComplete = activeExtractedIndex >= extractedFields.length - 1
+
   return (
     <div className="min-h-screen bg-[#fffaf7] text-[#352b27] overflow-x-hidden selection:bg-[#92372c]/10 relative">
       {/* Visual background decorations */}
@@ -143,33 +151,37 @@ export default function WelcomePage() {
       <div className="absolute bottom-1/4 left-10 w-[500px] h-[500px] bg-gradient-to-tr from-[#cae8dd]/20 to-transparent rounded-full filter blur-3xl pointer-events-none" />
 
       {/* Sticky Header with Modern Styling */}
-      <header className="sticky top-0 z-40 border-b border-[#eadbd4] bg-[#fffaf7]/80 backdrop-blur-md px-6 py-4 transition-all duration-300">
+      <header className="sticky top-0 z-40 border-b border-[#eadbd4] bg-[#fffaf7]/95 px-6 py-5 transition-all duration-300">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-10">
             <button
               onClick={() => navigate('/')}
-              className="font-['Source_Serif_4'] text-2xl sm:text-3xl font-extrabold tracking-tight text-[#92372c] flex items-center gap-2 hover:opacity-90 transition-opacity"
+              className="flex items-center gap-5 hover:opacity-90 transition-opacity"
             >
-              <ShieldCheck className="h-7 w-7 text-[#92372c]" />
-              Voice Karar
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#a33a2f] text-white shadow-lg shadow-[#a33a2f]/20">
+                <Mic className="h-7 w-7" />
+              </span>
+              <span className="font-['Source_Serif_4'] text-4xl font-extrabold tracking-tight text-[#171513]">
+                Voice Karar
+              </span>
             </button>
-            <nav className="hidden md:flex items-center gap-8 text-[14px] font-semibold text-[#746a65]">
-              <a href="#how" className="hover:text-[#92372c] transition-colors relative after:absolute after:bottom-[-22px] after:left-0 after:w-0 after:h-0.5 after:bg-[#92372c] hover:after:w-full after:transition-all">How it works</a>
-              <a href="#why" className="hover:text-[#92372c] transition-colors relative after:absolute after:bottom-[-22px] after:left-0 after:w-0 after:h-0.5 after:bg-[#92372c] hover:after:w-full after:transition-all">Why Voice Karar</a>
-              <a href="#pricing" className="hover:text-[#92372c] transition-colors relative after:absolute after:bottom-[-22px] after:left-0 after:w-0 after:h-0.5 after:bg-[#92372c] hover:after:w-full after:transition-all">Pricing</a>
+            <nav className="hidden md:flex items-center gap-9 text-[14px] font-bold text-[#8d4036]">
+              <a href="#how" className="relative pb-1 transition-colors hover:text-[#92372c] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#92372c] after:transition-all after:duration-200 hover:after:w-full">How it works</a>
+              <a href="#why" className="relative pb-1 transition-colors hover:text-[#92372c] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#92372c] after:transition-all after:duration-200 hover:after:w-full">Why Voice Karar</a>
+              <a href="#pricing" className="relative pb-1 transition-colors hover:text-[#92372c] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#92372c] after:transition-all after:duration-200 hover:after:w-full">Pricing</a>
             </nav>
           </div>
 
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/login')}
-              className="px-5 py-2.5 text-[14px] font-bold text-[#6b4c44] hover:text-[#92372c] transition-colors"
+              className="px-5 py-2.5 text-[16px] font-semibold text-[#6b4c44] hover:text-[#92372c] transition-colors"
             >
               Log In
             </button>
             <button
               onClick={() => navigate('/signup')}
-              className="rounded-full bg-[#92372c] hover:bg-[#a64034] text-white px-6 py-2.5 text-[14px] font-bold shadow-md shadow-[#92372c]/20 hover:shadow-lg hover:shadow-[#92372c]/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="rounded-full bg-[#a33a2f] hover:bg-[#92372c] text-white px-8 py-3 text-[16px] font-bold shadow-lg shadow-[#92372c]/20 hover:shadow-xl hover:shadow-[#92372c]/25 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
             >
               Get Started
             </button>
@@ -179,22 +191,18 @@ export default function WelcomePage() {
 
       <main className="relative z-10">
         {/* Hero Section */}
-        <section className="px-6 pb-24 pt-20 md:pt-28">
-          <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
+        <section className="px-6 pb-24 pt-10 md:pt-14">
+          <div className="mx-auto max-w-7xl grid gap-14 lg:grid-cols-[1.1fr_0.9fr] items-center">
             {/* Left Hero Column */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#efcfc4]/80 bg-white/70 backdrop-blur-sm px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-[#9b493d] shadow-sm">
-                <Sparkles className="h-4 w-4 text-[#bc6f62]" />
-                Trusted Agreements, Spoken Simply
-              </div>
-              <h1 className="font-['Source_Serif_4'] text-5xl sm:text-6xl font-extrabold leading-[1.1] text-[#171513] tracking-tight">
+            <div className="space-y-10">
+              <h1 className="max-w-[780px] font-['Source_Serif_4'] text-5xl sm:text-6xl font-extrabold leading-[1.12] text-[#171513] tracking-tight">
                 Turn a spoken <span className="relative inline-block italic text-[#92372c] after:absolute after:bottom-2 after:left-0 after:w-full after:h-2 after:bg-[#ffd8d1]/40 after:-z-10">agreement</span> into a signed one.
               </h1>
-              <p className="text-[18px] sm:text-[20px] leading-relaxed text-[#736862] max-w-[620px]">
+              <p className="text-[18px] sm:text-[20px] leading-[1.9] text-[#736862] max-w-[680px]">
                 Voice Karar helps Indian MSME owners capture every business deal in plain language. Our AI converts your natural conversation into a formal digital contract ready for instant buyer confirmation.
               </p>
 
-              <div className="flex flex-wrap gap-5 pt-4">
+              <div className="flex flex-wrap gap-5 pt-8">
                 <button
                   onClick={() => navigate('/signup')}
                   className="inline-flex items-center gap-3 rounded-full bg-[#92372c] hover:bg-[#a64034] px-8 py-4.5 text-[15px] font-bold text-white shadow-lg shadow-[#92372c]/20 hover:shadow-xl hover:shadow-[#92372c]/35 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
@@ -202,16 +210,17 @@ export default function WelcomePage() {
                   Start Recording Free
                   <ArrowRight className="h-5 w-5" />
                 </button>
-                <a
-                  href="#demo-widget"
+                <button
+                  type="button"
+                  onClick={startDemo}
                   className="inline-flex items-center justify-center rounded-full border border-[#d2b7ad] bg-white hover:bg-[#fff6f2] px-8 py-4.5 text-[15px] font-bold text-[#4c403b] hover:border-[#92372c] hover:text-[#92372c] transition-all duration-200"
                 >
                   Try Live Demo
-                </a>
+                </button>
               </div>
 
               {/* Stats / Proof Points */}
-              <div className="flex items-center gap-8 pt-6 border-t border-[#eadbd4]/60">
+              <div className="flex items-center gap-8 pt-8 border-t border-[#eadbd4]/60">
                 {[['5,000+', 'Businesses'], ['10×', 'Faster Deals'], ['0', 'Paperwork']].map(([val, label]) => (
                   <div key={label}>
                     <p className="text-2xl font-extrabold text-[#92372c] leading-none">{val}</p>
@@ -227,37 +236,24 @@ export default function WelcomePage() {
               <div className="absolute -inset-1.5 bg-gradient-to-r from-[#92372c] to-[#cae8dd] rounded-[32px] blur-xl opacity-30 group-hover:opacity-40 transition duration-1000" />
 
               <div className="relative rounded-[30px] border border-[#dfc6bb] bg-white p-8 sm:p-10 shadow-2xl transition-all duration-300 flex flex-col min-h-[480px]">
-                {/* Visual Card Header */}
-                <div className="flex items-center justify-between border-b border-[#f4eae5] pb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-3 w-3 rounded-full bg-[#bc6f62] animate-pulse" />
-                    <span className="text-[12px] font-bold uppercase tracking-wider text-[#9b493d] bg-[#ffd8d1]/40 px-3 py-1 rounded-full">
-                      Interactive Simulator
-                    </span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
-                  </div>
-                </div>
 
                 {/* State 1: Idle Vibe */}
                 {demoState === 'idle' && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center py-10 space-y-6">
-                    <div className="w-20 h-20 rounded-full bg-[#fff3ed] border border-[#f4eae5] flex items-center justify-center text-[#92372c] shadow-inner relative group-hover:scale-105 transition-transform duration-300">
-                      <Mic className="h-10 w-10 text-[#92372c]" />
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-8 space-y-8">
+                    <div className="w-24 h-24 rounded-full bg-[#fff3ed] border border-[#f4eae5] flex items-center justify-center text-[#92372c] shadow-inner relative group-hover:scale-105 transition-transform duration-300">
+                      <Mic className="h-12 w-12 text-[#92372c]" />
                       <div className="absolute inset-0 rounded-full border-2 border-[#92372c]/10 animate-ping pointer-events-none" />
                     </div>
-                    <div className="space-y-2 max-w-[320px]">
-                      <h3 className="font-['Source_Serif_4'] text-xl font-bold text-[#352b27]">Hear how simple it is</h3>
-                      <p className="text-[14px] text-[#8c7e77]">
+                    <div className="space-y-4 max-w-[380px]">
+                      <h3 className="font-['Source_Serif_4'] text-3xl font-bold text-[#352b27]">Hear how simple it is</h3>
+                      <p className="text-[16px] leading-8 text-[#8c7e77]">
                         Listen to a simulated local merchant order and see the AI draft an agreement instantly.
                       </p>
                     </div>
                     <button
-                      onClick={startDemo}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#92372c] hover:bg-[#a64034] text-white font-bold text-[13px] uppercase tracking-wider rounded-full shadow-md shadow-[#92372c]/20 hover:scale-[1.03] transition-all"
+                      type="button"
+                      onClick={(event) => startDemo(event)}
+                      className="inline-flex items-center gap-3 px-9 py-4 bg-[#92372c] hover:bg-[#a64034] text-white font-bold text-[16px] uppercase tracking-wider rounded-full shadow-md shadow-[#92372c]/20 hover:scale-[1.03] transition-all"
                     >
                       <Play className="h-4 w-4 fill-white" />
                       Play Spoken Deal
@@ -304,8 +300,8 @@ export default function WelcomePage() {
                     </div>
 
                     <div className="flex justify-end">
-                      <button onClick={resetDemo} className="text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] flex items-center gap-1">
-                        <RotateCcw className="h-3 w-3" /> Stop
+                      <button type="button" onClick={resetDemo} className="text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] flex items-center gap-1">
+                        <X className="h-3 w-3" /> Close
                       </button>
                     </div>
                   </div>
@@ -317,10 +313,12 @@ export default function WelcomePage() {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-[12px] font-bold uppercase tracking-wider text-[#736862] flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-                          AI Processing Audio
+                        <span className={`h-2 w-2 rounded-full ${extractionComplete ? 'bg-[#557b6e]' : 'bg-amber-500 animate-ping'}`} />
+                          {extractionComplete ? 'All Checks Complete' : 'AI Processing Audio'}
                         </span>
-                        <span className="text-[11px] font-semibold text-[#bc6f62]">Extracting fields...</span>
+                        <span className="text-[11px] font-semibold text-[#bc6f62]">
+                          {extractionComplete ? 'Ready to close' : 'Extracting fields...'}
+                        </span>
                       </div>
 
                       {/* Display extracted fields with delightful slide-in entry */}
@@ -349,7 +347,7 @@ export default function WelcomePage() {
                     </div>
 
                     <div className="flex justify-end mt-4">
-                      <button onClick={resetDemo} className="text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] flex items-center gap-1">
+                      <button type="button" onClick={resetDemo} className="text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] flex items-center gap-1">
                         <RotateCcw className="h-3 w-3" /> Reset
                       </button>
                     </div>
@@ -395,8 +393,8 @@ export default function WelcomePage() {
                       >
                         <FileSignature className="h-4 w-4" /> Sign & Accept Agreement
                       </button>
-                      <button onClick={resetDemo} className="w-full text-center text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] py-1.5">
-                        Start Over
+                      <button type="button" onClick={resetDemo} className="w-full text-center text-xs font-semibold text-[#8c7e77] hover:text-[#92372c] py-1.5">
+                        Close
                       </button>
                     </div>
                   </div>
@@ -427,12 +425,14 @@ export default function WelcomePage() {
 
                     <div className="flex gap-4 w-full pt-2">
                       <button
-                        onClick={() => navigate('/signup')}
+                        type="button"
+                        onClick={resetDemo}
                         className="flex-1 py-3 bg-[#92372c] hover:bg-[#a64034] text-white font-bold text-[13px] rounded-lg shadow"
                       >
-                        Create Your Own
+                        Close
                       </button>
                       <button
+                        type="button"
                         onClick={resetDemo}
                         className="px-4 py-3 border border-[#d2b7ad] rounded-lg text-xs font-bold text-[#4c403b] hover:bg-[#fff3ed]"
                       >
@@ -442,16 +442,6 @@ export default function WelcomePage() {
                   </div>
                 )}
 
-                {/* Footer Meta info */}
-                <div className="mt-auto border-t border-[#eadbd4]/40 pt-4 flex items-center justify-between text-[11px]">
-                  <div className="flex -space-x-1.5">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f6ece6] text-[9px] font-bold text-[#92372c] border border-white">AK</span>
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ffd8d1] text-[9px] font-bold text-[#92372c] border border-white">DM</span>
-                  </div>
-                  <span className="rounded-full bg-[#e5f1e9] px-3.5 py-1 text-[10px] font-extrabold uppercase text-[#557b6e] tracking-wider">
-                    Secured by OTP
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -460,28 +450,30 @@ export default function WelcomePage() {
         {/* Process/How it Works Section */}
         <section id="how" className="px-6 py-24 bg-white border-y border-[#eadbd4]/60">
           <div className="mx-auto max-w-7xl">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9a3d31]">The Voice Karar Process</p>
-              <h2 className="font-['Source_Serif_4'] text-4xl font-extrabold text-[#171513]">Digitize in three simple steps</h2>
-              <p className="text-sm text-[#756a65] max-w-md mx-auto">
+            <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+              <p className="text-[15px] font-extrabold uppercase tracking-[0.28em] text-[#9a3d31]">The Voice Karar Process</p>
+              <h2 className="mt-4 font-['Source_Serif_4'] text-4xl font-extrabold text-[#171513]">Digitize in three simple steps</h2>
+              <p className="mx-auto mt-5 max-w-[720px] text-center text-[18px] leading-9 text-[#756a65]">
                 No complex forms, no lawyer consults needed. Bring contract automation straight to your voice messages.
               </p>
             </div>
 
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
+            <div className="mt-20 grid gap-8 md:grid-cols-3">
               {steps.map(({ title, text, icon: Icon }, index) => (
                 <article
                   key={title}
-                  className="relative rounded-2xl border border-[#ead5cc] bg-[#fff3ed]/60 p-8 hover:bg-[#fff3ed] hover:-translate-y-1 transition-all duration-300 hover:shadow-md group"
+                  className="rounded-2xl border border-[#ead5cc] bg-[#fff3ed]/60 p-8 hover:bg-[#fff3ed] hover:-translate-y-1 transition-all duration-300 hover:shadow-md group"
                 >
-                  <span className="absolute right-6 top-6 font-['Source_Serif_4'] text-2xl font-bold italic text-[#dfc8be]/70 group-hover:text-[#92372c]/20 transition-colors">
-                    0{index + 1}
-                  </span>
-                  <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#ffd8d1] text-[#9a3d31] shadow-sm group-hover:scale-110 transition-transform">
-                    <Icon className="h-6 w-6" />
+                  <div className="flex items-start justify-between">
+                    <div className="grid h-14 w-14 place-items-center rounded-xl bg-[#ffd8d1] text-[#9a3d31] shadow-sm group-hover:scale-110 transition-transform">
+                      <Icon className="h-7 w-7" />
+                    </div>
+                    <span className="font-['Source_Serif_4'] text-2xl font-bold italic leading-none text-[#dfc8be]/70 group-hover:text-[#92372c]/20 transition-colors">
+                      0{index + 1}
+                    </span>
                   </div>
-                  <h3 className="mt-8 font-['Source_Serif_4'] text-2xl font-bold text-[#352b27]">{title}</h3>
-                  <p className="mt-4 text-[14px] leading-relaxed text-[#756a65]">{text}</p>
+                  <h3 className="mt-16 font-['Source_Serif_4'] text-2xl font-bold text-[#352b27]">{title}</h3>
+                  <p className="mt-6 text-[15px] leading-8 text-[#756a65]">{text}</p>
                 </article>
               ))}
             </div>
@@ -490,18 +482,18 @@ export default function WelcomePage() {
 
         {/* Why Voice Karar / Benefits Grid */}
         <section id="why" className="bg-[#fffaf7] px-6 py-24">
-          <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-[0.8fr_1.2fr] items-start">
-            <div className="space-y-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9a3d31]">Why Voice Karar</p>
-              <h2 className="font-['Source_Serif_4'] text-4xl font-extrabold leading-tight text-[#171513]">
+          <div className="mx-auto max-w-7xl grid gap-20 lg:grid-cols-[0.82fr_1.18fr] items-start">
+            <div className="max-w-xl space-y-8">
+              <p className="text-[15px] font-extrabold uppercase tracking-[0.28em] text-[#9a3d31]">Why Voice Karar</p>
+              <h2 className="font-['Source_Serif_4'] text-5xl font-extrabold leading-[1.16] text-[#171513]">
                 Built for the Modern Indian Merchant
               </h2>
-              <p className="text-[15px] leading-relaxed text-[#756a65]">
+              <p className="max-w-2xl text-[18px] leading-9 text-[#756a65]">
                 Indian MSMEs deal with fast turnarounds. Don't break the momentum of a deal to go find a pen, stamp paper, or template. Speak your terms, verify, and seal the bond immediately.
               </p>
               <button
                 onClick={() => navigate('/signup')}
-                className="inline-flex items-center gap-2 rounded-full border border-[#d2b7ad] hover:border-[#92372c] hover:text-[#92372c] bg-white px-6 py-3 text-[13px] font-bold transition-all"
+                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d2b7ad] hover:border-[#92372c] hover:text-[#92372c] bg-white px-6 py-3 text-[13px] font-bold transition-all"
               >
                 Compare Features <ArrowRight className="h-4 w-4" />
               </button>
@@ -511,14 +503,14 @@ export default function WelcomePage() {
               {trustCards.map(({ title, text, icon: Icon, wide }) => (
                 <article
                   key={title}
-                  className={`rounded-2xl border border-[#ead5cc] bg-white p-7 hover:shadow-md transition-shadow group ${wide ? 'md:col-span-2' : ''
+                  className={`rounded-2xl border border-[#ead5cc] bg-white p-9 hover:shadow-md transition-shadow group ${wide ? 'md:col-span-2' : ''
                     }`}
                 >
                   <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#fff3ed] text-[#9a3d31] group-hover:scale-105 transition-transform">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-5 font-['Source_Serif_4'] text-2xl font-bold text-[#3b302c]">{title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-[#756a65]">{text}</p>
+                  <h3 className="mt-12 font-['Source_Serif_4'] text-3xl font-bold leading-tight text-[#3b302c]">{title}</h3>
+                  <p className="mt-6 text-[16px] leading-8 text-[#756a65]">{text}</p>
                 </article>
               ))}
             </div>

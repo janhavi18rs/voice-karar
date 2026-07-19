@@ -1,4 +1,4 @@
-import { Bell, CircleHelp, LogOut, ShieldCheck, User } from 'lucide-react'
+import { Bell, CircleHelp, LogOut, Mic, User } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { clearSession } from '../services/api'
@@ -29,15 +29,19 @@ export default function Navbar() {
   }
 
   return (
-    <header className="border-b border-[var(--ledger-line)] bg-[var(--paper)]/95 px-7 py-3">
+    <header className="border-b border-[var(--ledger-line)] bg-[var(--paper)]/95 px-6 py-5">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <div className="flex items-center gap-9">
+        <div className="flex items-center gap-10">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 font-['Source_Serif_4'] text-2xl font-bold text-[var(--seal)] no-underline"
+            className="flex items-center gap-5 no-underline"
           >
-            <ShieldCheck className="h-5 w-5" />
-            Voice Karar
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#a33a2f] text-white shadow-lg shadow-[#a33a2f]/20">
+              <Mic className="h-7 w-7" />
+            </span>
+            <span className="font-['Source_Serif_4'] text-4xl font-extrabold tracking-tight text-[#171513]">
+              Voice Karar
+            </span>
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-semibold md:flex">
             {navItems.map((item) => {

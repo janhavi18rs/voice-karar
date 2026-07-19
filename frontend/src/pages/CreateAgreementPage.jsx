@@ -54,11 +54,13 @@ export default function CreateAgreementPage() {
       <header className="border-b border-[#eadbd4] bg-[#fffaf7]/95 px-7 py-3">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-9">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="font-['Source_Serif_4'] text-2xl font-bold text-[#8f2f23]"
-            >
-              Voice Karar
+            <button onClick={() => navigate('/dashboard')} className="flex items-center gap-5">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#a33a2f] text-white shadow-lg shadow-[#a33a2f]/20">
+                <Mic className="h-7 w-7" />
+              </span>
+              <span className="font-['Source_Serif_4'] text-4xl font-extrabold tracking-tight text-[#171513]">
+                Voice Karar
+              </span>
             </button>
             <nav className="hidden items-center gap-8 text-[13px] font-semibold md:flex">
               <button onClick={() => navigate('/dashboard')} className="text-[#5e5652]">
