@@ -23,7 +23,7 @@ services:
       - key: APP_BASE_URL
         value: https://voice-karar-frontend.onrender.com
       - key: AI_AGENT_URL
-        value: http://voice-karar-ai-agent:5001
+        value: https://voice-karar-ai-agent.onrender.com
 
   # AI Agent Service
   - type: web
