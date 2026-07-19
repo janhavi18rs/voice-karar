@@ -95,6 +95,56 @@ const callAgent = async ({ transcript, audio, audioMimeType, outputLanguage, det
   return payload;
 };
 
+const callAgentUpdate = async ({ id, structuredData }) => {
+  const response = await fetch(`${config.aiAgentUrl}/update-agreement`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id,
+      structured_data: structuredData,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || payload.details || `AI agent update failed with ${response.status}`);
+  }
+  return payload;
+};
+
+const normalizeArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (normalizeText(value)) return [value];
+  return [];
+};
+
+export const buildStructuredDataUpdate = (agreement, updates = {}) => {
+  const existing = agreement?.aiExtractedData?.structured_data || {};
+  const agreedTerms = updates.agreedTerms || {};
+  const counterParty = updates.counterParty || {};
+  const next = {
+    ...existing,
+    ...(updates.aiStructuredData || {}),
+  };
+
+  if (counterParty.name) next.party_2 = counterParty.name;
+  if (agreedTerms.product) next.agreement_purpose = agreedTerms.product;
+  if (agreedTerms.paymentTerms) next.payment_terms = agreedTerms.paymentTerms;
+  if (agreedTerms.specialConditions) {
+    next.special_conditions = normalizeArray(agreedTerms.specialConditions);
+  }
+
+  const amount = firstUseful(agreedTerms.totalAmount, agreedTerms.pricePerUnit);
+  if (amount) next.payment_amount = `INR ${amount}`;
+
+  if (agreedTerms.deliveryDate) {
+    next.agreement_duration = agreedTerms.deliveryDate;
+    next.important_dates = [agreedTerms.deliveryDate];
+  }
+
+  return next;
+};
+
 export const mapAiToAgreementPayload = (aiPayload, source = 'manual') => {
   const data = aiPayload.structured_data || {};
   const amount = firstUseful(data.payment_amount);
@@ -173,8 +223,29 @@ export const generateAndSaveAgreement = async (userId, options) => {
   };
 };
 
+export const refreshAgreementWithAnswers = async (agreement, updates = {}) => {
+  const aiAgentId = agreement?.aiExtractedData?.id;
+  if (!aiAgentId) return null;
+
+  const structuredData = buildStructuredDataUpdate(agreement, updates);
+  const aiPayload = await callAgentUpdate({ id: aiAgentId, structuredData });
+
+  agreement.aiExtractedData = {
+    ...(agreement.aiExtractedData || {}),
+    ...aiPayload,
+    source: agreement.aiExtractedData?.source || 'manual',
+  };
+
+  await agreement.save();
+  return {
+    ai: aiPayload,
+    draft: toFrontendDraft(agreement, aiPayload),
+  };
+};
+
 export default {
   generateAndSaveAgreement,
   mapAiToAgreementPayload,
   toFrontendDraft,
+  refreshAgreementWithAnswers,
 };

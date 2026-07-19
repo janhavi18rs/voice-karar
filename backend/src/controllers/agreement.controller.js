@@ -8,6 +8,7 @@
  */
 
 import * as agreementService from '../services/agreement.service.js';
+import * as aiService from '../services/ai.service.js';
 import shareLinkService from '../services/shareLink.service.js';
 import ApiResponse from '../utils/ApiResponse.js';
 
@@ -111,9 +112,23 @@ export const update = async (req, res, next) => {
       req.body
     );
 
+    let aiResult = null;
+    try {
+      aiResult = await aiService.refreshAgreementWithAnswers(agreement, req.body);
+    } catch (error) {
+      console.warn(`[AI] Agreement refresh skipped: ${error.message}`);
+    }
+
     return res
       .status(200)
-      .json(new ApiResponse(200, { agreement }, 'Agreement updated successfully'));
+      .json(new ApiResponse(
+        200,
+        {
+          agreement,
+          ...(aiResult || {}),
+        },
+        'Agreement updated successfully'
+      ));
   } catch (err) {
     next(err);
   }

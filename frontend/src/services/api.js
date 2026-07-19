@@ -177,6 +177,11 @@ export const updateAgreement = async (id, updates) => {
   return data.data.agreement
 }
 
+export const updateAgreementWithDraft = async (id, updates) => {
+  const { data } = await api.patch(`/agreements/${id}`, updates)
+  return data.data
+}
+
 /**
  * Cancel an agreement.
  * PATCH /api/v1/agreements/:id/cancel

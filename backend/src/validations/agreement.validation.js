@@ -64,6 +64,10 @@ export const updateAgreementSchema = {
       required: false,
       type: 'object',
     },
+    aiStructuredData: {
+      required: false,
+      type: 'object',
+    },
   },
 };
 
