@@ -50,8 +50,8 @@ export class AgreementAgent {
     executeFn: (model: any) => Promise<T>
   ): Promise<T> {
     const candidateModels = [
-      this.modelName,
       "gemini-2.0-flash-lite",
+      this.modelName,
       "gemini-2.0-flash",
       "gemini-1.5-flash-latest",
       "gemini-2.0-flash-exp",
