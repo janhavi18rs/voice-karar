@@ -51,6 +51,13 @@ const config = {
    * e.g. https://voicekarar.app  → link becomes https://voicekarar.app/share/abc123
    */
   appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:5000',
+
+  /**
+   * Internal URL of the AI Agent microservice.
+   * The backend proxies all AI calls here — the frontend never talks to the AI agent directly.
+   * Default: http://localhost:5001
+   */
+  aiAgentUrl: process.env.AI_AGENT_URL || 'http://localhost:5001',
 };
 
 export default config;

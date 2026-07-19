@@ -1,220 +1,268 @@
-const AGREEMENTS_KEY = 'voicekarar-agreements'
-const USER_KEY = 'voicekarar-user'
+/**
+ * frontend/src/services/api.js
+ *
+ * Real Axios HTTP client for the Voice Karar backend.
+ *
+ * Architecture rule:
+ *   Frontend → Backend only.
+ *   Never call the AI Agent (port 5001) directly from here.
+ *
+ * Auth:
+ *   JWT is stored in localStorage under 'vk-token'.
+ *   The request interceptor attaches it as "Authorization: Bearer <token>".
+ */
 
-const mockAgreements = [
-  {
-    id: 'agr-101',
-    ownerName: 'Asha Mehta',
-    otherPartyName: 'Rajat Traders',
-    product: 'Cotton bags',
-    quantity: 500,
-    price: 1800,
-    deliveryDate: '2026-08-10',
-    paymentTerms: '50% advance, 50% on delivery',
-    specialConditions: 'Bulk packing with company logo',
-    status: 'confirmed',
-    createdAt: '2026-07-08',
-    agreementLink: 'https://voicekarar.in/agr-101',
-    source: 'live',
-    transcriptId: 'tx-1'
-  },
-  {
-    id: 'agr-102',
-    ownerName: 'Asha Mehta',
-    otherPartyName: 'Kiran Motors',
-    product: 'Spare parts kit',
-    quantity: 12,
-    price: 42000,
-    deliveryDate: '2026-07-24',
-    paymentTerms: 'Net 7 days',
-    specialConditions: 'Warranty for 3 months',
-    status: 'pending',
-    createdAt: '2026-07-12',
-    agreementLink: 'https://voicekarar.in/agr-102',
-    source: 'upload',
-    transcriptId: 'tx-2'
-  },
-  {
-    id: 'agr-103',
-    ownerName: 'Asha Mehta',
-    otherPartyName: 'Sanjay Fabrics',
-    product: 'Cotton shirts',
-    quantity: 500,
-    price: 120,
-    deliveryDate: '2026-07-25',
-    paymentTerms: '50% advance',
-    specialConditions: 'Packed in branded cartons',
-    status: 'needs-changes',
-    createdAt: '2026-07-15',
-    agreementLink: 'https://voicekarar.in/agr-103',
-    source: 'manual',
-    transcriptId: null
+import axios from 'axios'
+
+// ─── Axios Instance ────────────────────────────────────────────────────────────
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1',
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 60000, // 60 s — AI calls can be slow
+})
+
+// Attach JWT token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('vk-token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
-]
+  return config
+})
 
-const defaultUser = {
-  name: 'Asha Mehta',
-  businessName: 'Mehta Traders',
-  email: 'asha@mehta.co',
-  mobile: '+919876543210',
-  businessType: 'Trader',
-  businessCategory: 'Textiles',
-  preferredLanguage: 'Hindi',
-  avatarUrl: '',
-  memberSince: '2024-01-12',
-  totalAgreements: 3
-}
-
-const readStoredAgreements = () => {
-  if (typeof window === 'undefined') return mockAgreements
-
-  try {
-    const saved = window.localStorage.getItem(AGREEMENTS_KEY)
-    return saved ? JSON.parse(saved) : mockAgreements
-  } catch {
-    return mockAgreements
-  }
-}
-
-const writeStoredAgreements = (agreements) => {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(AGREEMENTS_KEY, JSON.stringify(agreements))
-}
-
-const readStoredUser = () => {
-  if (typeof window === 'undefined') return defaultUser
-
-  try {
-    const saved = window.localStorage.getItem(USER_KEY)
-    return saved ? JSON.parse(saved) : defaultUser
-  } catch {
-    return defaultUser
-  }
-}
-
-const writeStoredUser = (user) => {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
-}
-
-export const getAgreements = async () => Promise.resolve(readStoredAgreements())
-
-export const createAgreement = async (payload) => {
-  const agreement = {
-    ...payload,
-    id: payload.id || `agr-${Date.now()}`,
-    status: 'draft',
-    createdAt: new Date().toISOString().split('T')[0],
-    agreementLink: `${typeof window !== 'undefined' ? window.location.origin : 'https://voicekarar.in'}/confirm/${payload.id || `agr-${Date.now()}`}`,
-    source: payload.source || 'manual',
-    transcriptId: payload.transcriptId || null
-  }
-
-  const agreements = [...readStoredAgreements(), agreement]
-  writeStoredAgreements(agreements)
-  return Promise.resolve(agreement)
-}
-
-export const confirmAgreement = async (id, action, note = '') => {
-  const agreements = readStoredAgreements().map((agreement) => {
-    if (agreement.id !== id) return agreement
-    return {
-      ...agreement,
-      status: action === 'accept' ? 'confirmed' : action === 'reject' ? 'rejected' : 'needs-changes',
-      note
+// Global response error handler — surfaces clear messages
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      clearSession()
     }
+
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Something went wrong'
+    return Promise.reject(new Error(message))
+  }
+)
+
+// ─── Token / Session Helpers ────────────────────────────────────────────────────
+
+export const saveSession = (token, user) => {
+  localStorage.setItem('vk-token', token)
+  localStorage.setItem('vk-user', JSON.stringify(user))
+}
+
+export const clearSession = () => {
+  localStorage.removeItem('vk-token')
+  localStorage.removeItem('vk-user')
+}
+
+export const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem('vk-user')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export const isAuthenticated = () => !!localStorage.getItem('vk-token')
+
+export const getCurrentUser = async () => getStoredUser()
+
+export const updateProfile = async (updates) => {
+  const updatedUser = { ...getStoredUser(), ...updates }
+  localStorage.setItem('vk-user', JSON.stringify(updatedUser))
+  return updatedUser
+}
+
+// ─── Auth ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Register a new user.
+ * POST /api/v1/auth/register
+ * Body: { name, businessName, mobile, email, password, businessType?, businessCategory?, preferredLanguage? }
+ * Returns: { user, token }
+ */
+export const register = async ({
+  name,
+  businessName,
+  mobile,
+  email,
+  password,
+  businessType,
+  businessCategory,
+  preferredLanguage,
+}) => {
+  const { data } = await api.post('/auth/register', {
+    name,
+    businessName,
+    mobile,
+    email,
+    password,
+    businessType,
+    businessCategory,
+    preferredLanguage,
   })
+  // Backend wraps in ApiResponse: { statusCode, data, message }
+  const payload = data.data
+  saveSession(payload.token, payload.user)
+  return payload
+}
 
-  writeStoredAgreements(agreements)
+/**
+ * Log in an existing user.
+ * POST /api/v1/auth/login
+ * Body: { email, password }
+ * Returns: { user, token }
+ */
+export const login = async ({ email, password }) => {
+  const { data } = await api.post('/auth/login', { email, password })
+  const payload = data.data
+  saveSession(payload.token, payload.user)
+  return payload
+}
 
-  return Promise.resolve({
-    id,
-    action,
-    note,
-    status: action === 'accept' ? 'confirmed' : action === 'reject' ? 'rejected' : 'needs-changes'
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch dashboard statistics and recent agreements.
+ * GET /api/v1/dashboard
+ * Returns: { stats: { total, pending, confirmed, needsChanges, cancelled }, recentAgreements }
+ */
+export const getDashboard = async () => {
+  const { data } = await api.get('/dashboard')
+  return data.data
+}
+
+// ─── Agreements ───────────────────────────────────────────────────────────────
+
+/**
+ * List all agreements for the logged-in user.
+ * GET /api/v1/agreements?status=pending&page=1&limit=10
+ */
+export const getAgreements = async (params = {}) => {
+  const { data } = await api.get('/agreements', { params })
+  return data.data // { agreements, total, page, totalPages }
+}
+
+/**
+ * Get a single agreement by its MongoDB _id.
+ * GET /api/v1/agreements/:id
+ */
+export const getAgreementById = async (id) => {
+  const { data } = await api.get(`/agreements/${id}`)
+  return data.data.agreement
+}
+
+/**
+ * Get a shared agreement by its shareToken (public — no auth required).
+ * GET /api/v1/agreements/share/:shareToken
+ */
+export const getAgreementByShareToken = async (shareToken) => {
+  const { data } = await api.get(`/agreements/share/${shareToken}`)
+  return data.data.agreement
+}
+
+/**
+ * Update agreed terms of a pending agreement.
+ * PATCH /api/v1/agreements/:id
+ * Body: { agreedTerms?, title? }
+ */
+export const updateAgreement = async (id, updates) => {
+  const { data } = await api.patch(`/agreements/${id}`, updates)
+  return data.data.agreement
+}
+
+/**
+ * Cancel an agreement.
+ * PATCH /api/v1/agreements/:id/cancel
+ */
+export const cancelAgreement = async (id, note = '') => {
+  const { data } = await api.patch(`/agreements/${id}/cancel`, { note })
+  return data.data.agreement
+}
+
+// ─── AI / Generate Agreement ──────────────────────────────────────────────────
+
+/**
+ * Send audio or text to the backend for AI extraction and agreement creation.
+ *
+ * POST /api/v1/ai/generate
+ *
+ * For voice / audio:
+ *   { audio: <base64 string>, audioMimeType: 'audio/webm', source: 'live'|'upload', outputLanguage: 'English' }
+ *
+ * For manual text:
+ *   { transcript: <string>, source: 'manual', outputLanguage: 'English' }
+ *
+ * Returns:
+ *   { ai, agreement, draft }
+ *   where draft = { id, supplierName, product, quantity, price, deliveryDate, paymentTerms,
+ *                   specialConditions, status, agreementLink, shareToken, agreementText, missingFields }
+ */
+export const generateAgreement = async ({ audio, audioMimeType, transcript, source, outputLanguage = 'English' }) => {
+  const { data } = await api.post('/ai/generate', {
+    audio,
+    audioMimeType,
+    transcript,
+    source,
+    outputLanguage,
   })
-}
-
-export const getAgreementById = async (id) => Promise.resolve(readStoredAgreements().find((item) => item.id === id) || null)
-
-export const signupUser = async (formData) => {
-  const user = {
-    ...defaultUser,
-    ...formData,
-    memberSince: new Date().toISOString().split('T')[0],
-    totalAgreements: 3
-  }
-  writeStoredUser(user)
-  return Promise.resolve({ ok: true, user })
-}
-
-export const getCurrentUser = async () => Promise.resolve(readStoredUser())
-
-export const updateProfile = async (formData) => {
-  const updatedUser = { ...readStoredUser(), ...formData }
-  writeStoredUser(updatedUser)
-  return Promise.resolve(updatedUser)
-}
-
-export const submitManualEntry = async (text) => {
-  const extractedFields = {
-    supplierName: 'Ramesh Textiles',
-    product: 'Cotton shirts',
-    quantity: 500,
-    price: '₹120 each',
-    deliveryDate: '25 July',
-    paymentTerms: '50% advance',
-    specialConditions: 'Packed in branded cartons'
-  }
-  const missingFields = ['deliveryDate', 'paymentTerms', 'specialConditions']
-  return Promise.resolve({ extractedFields, missingFields })
-}
-
-export const submitFollowUpAnswers = async (answers) => {
-  const current = readStoredAgreements()
-  const agreement = {
-    id: `agr-${Date.now()}`,
-    ownerName: readStoredUser().name,
-    otherPartyName: 'Ramesh Textiles',
-    product: 'Cotton shirts',
-    quantity: 500,
-    price: 120,
-    deliveryDate: answers.deliveryDate || '25 July',
-    paymentTerms: answers.paymentTerms || '50% advance',
-    specialConditions: answers.specialConditions || 'Packed in branded cartons',
-    status: 'pending',
-    createdAt: new Date().toISOString().split('T')[0],
-    agreementLink: `${typeof window !== 'undefined' ? window.location.origin : 'https://voicekarar.in'}/confirm/agr-${Date.now()}`,
-    source: 'manual',
-    transcriptId: null
-  }
-  writeStoredAgreements([agreement, ...current])
-  return Promise.resolve({ ok: true, agreement })
-}
-
-export const uploadCallRecording = async (fileOrBlob) => {
-  const transcriptId = `tx-${Date.now()}`
-  const estimatedProcessingSeconds = 8 + Math.min(60, Math.round((fileOrBlob.size || 0) / (1024 * 1024)))
-  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
-  transcripts[transcriptId] = { text: 'Transcription in progress... (mock)', highlights: [] }
-  if (typeof window !== 'undefined') window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
-  return Promise.resolve({ transcriptId, estimatedProcessingSeconds })
+  return data.data // { ai, agreement, draft }
 }
 
 export const getTranscript = async (transcriptId) => {
-  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
-  if (transcripts[transcriptId]) return Promise.resolve(transcripts[transcriptId])
-  const text = 'Buyer: I agree to buy 500 cotton bags at ₹1800 to be delivered on 10 August. Seller: agreed.'
-  const highlights = [
-    { text: '500', type: 'quantity', startIndex: text.indexOf('500'), endIndex: text.indexOf('500') + 3 },
-    { text: '₹1800', type: 'price', startIndex: text.indexOf('₹1800'), endIndex: text.indexOf('₹1800') + 5 }
-  ]
-  return Promise.resolve({ text, highlights })
+  try {
+    const transcripts = JSON.parse(localStorage.getItem('vk-transcripts') || '{}')
+    return transcripts[transcriptId] || { text: '', highlights: [] }
+  } catch {
+    return { text: '', highlights: [] }
+  }
 }
 
 export const updateTranscript = async (transcriptId, correctedText) => {
-  const transcripts = JSON.parse(typeof window !== 'undefined' ? window.localStorage.getItem('vk-transcripts') || '{}' : '{}')
-  transcripts[transcriptId] = { text: correctedText, highlights: [] }
-  if (typeof window !== 'undefined') window.localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
-  return Promise.resolve({ transcriptId })
+  const transcripts = JSON.parse(localStorage.getItem('vk-transcripts') || '{}')
+  transcripts[transcriptId] = {
+    ...(transcripts[transcriptId] || {}),
+    text: correctedText,
+    highlights: [],
+  }
+  localStorage.setItem('vk-transcripts', JSON.stringify(transcripts))
+  return { transcriptId }
 }
+
+// ─── Confirmations (Public — no auth required) ────────────────────────────────
+
+/**
+ * Accept an agreement as the counterparty.
+ * POST /api/v1/confirmations/accept
+ * Body: { agreementId, email, signatureText }
+ */
+export const acceptAgreement = async ({ agreementId, email, signatureText }) => {
+  const { data } = await api.post('/confirmations/accept', {
+    agreementId,
+    email,
+    signatureText,
+  })
+  return data.data
+}
+
+/**
+ * Request changes on an agreement as the counterparty.
+ * POST /api/v1/confirmations/request-changes
+ * Body: { agreementId, email, note }
+ */
+export const requestChanges = async ({ agreementId, email, note }) => {
+  const { data } = await api.post('/confirmations/request-changes', {
+    agreementId,
+    email,
+    note,
+  })
+  return data.data
+}
+
+export default api

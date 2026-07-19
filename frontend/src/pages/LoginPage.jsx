@@ -1,14 +1,51 @@
+/**
+ * frontend/src/pages/LoginPage.jsx
+ *
+ * Real email + password login wired to:
+ *   POST /api/v1/auth/login
+ *
+ * On success: JWT + user stored in localStorage, navigate to /dashboard.
+ * On failure: inline error message shown.
+ */
+
 import { useState } from 'react'
-import { ArrowRight, MessageCircleMore, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
+import { login } from '../services/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState('phone')
-  const [phone, setPhone] = useState('')
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (event) => {
+    const { name, value } = event.target
+    setForm((current) => ({ ...current, [name]: value }))
+    setError('')
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (!form.email || !form.password) {
+      setError('Please enter your email and password.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      await login({ email: form.email, password: form.password })
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
@@ -18,7 +55,9 @@ export default function LoginPage() {
             <ShieldCheck className="h-4 w-4 text-[var(--seal)]" />
             Voice Karar
           </div>
-          <Link to="/signup" className="text-sm text-[var(--seal)] underline">New here? Create an account</Link>
+          <Link to="/signup" className="text-sm text-[var(--seal)] underline">
+            New here? Create an account
+          </Link>
         </header>
 
         <main className="flex flex-1 items-center py-8">
@@ -29,37 +68,66 @@ export default function LoginPage() {
                 Sign in to continue
               </div>
               <div className="space-y-3">
-                <h1 className="font-['Source_Serif_4'] text-4xl leading-tight sm:text-5xl">Welcome back to your trusted agreement desk.</h1>
-                <p className="max-w-xl text-lg text-[var(--ink)]/70">Use the mock sign-in flow to continue into your dashboard and create a new draft.</p>
+                <h1 className="font-['Source_Serif_4'] text-4xl leading-tight sm:text-5xl">
+                  Welcome back to your trusted agreement desk.
+                </h1>
+                <p className="max-w-xl text-lg text-[var(--ink)]/70">
+                  Sign in with your registered email and password to continue into your dashboard.
+                </p>
               </div>
             </section>
 
             <section className="w-full max-w-md">
               <Card tone="stamp" className="border-t-4 border-t-[var(--seal)]">
-                <div className="mb-6 flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-[var(--ink)]/70">
-                  <MessageCircleMore className="h-4 w-4 text-[var(--seal)]" />
-                  {step === 'phone' ? 'Enter mobile or email' : 'Enter OTP'}
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                  <Input
+                    label="Email address"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
 
-                {step === 'phone' ? (
-                  <div className="space-y-4">
-                    <Input label="Phone number or email" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="98765 43210" />
-                    <Button className="w-full" onClick={() => setStep('otp')}>
-                      Send code <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                  <div className="relative">
+                    <Input
+                      label="Password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="Your password"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-9 text-[var(--ink)]/50 hover:text-[var(--ink)]"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-4 gap-2">
-                      {['1', '2', '3', '4'].map((digit) => (
-                        <input key={digit} className="h-12 border border-[var(--ledger-line)] bg-[var(--paper)] text-center text-lg font-semibold text-[var(--ink)]" defaultValue={digit} />
-                      ))}
-                    </div>
-                    <Button className="w-full" onClick={() => navigate('/dashboard')}>
-                      Verify & continue <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+
+                  {error && (
+                    <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {error}
+                    </p>
+                  )}
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Signing in…' : 'Sign in'}
+                    {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+                  </Button>
+                </form>
+
+                <p className="mt-4 text-center text-sm text-[var(--ink)]/60">
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="text-[var(--seal)] underline">
+                    Sign up
+                  </Link>
+                </p>
               </Card>
             </section>
           </div>

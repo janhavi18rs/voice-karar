@@ -15,28 +15,38 @@ import SignupPage from './pages/SignupPage'
 import TranscriptReviewScreen from './pages/TranscriptReviewScreen'
 import UploadAudioPage from './pages/UploadAudioPage'
 import WelcomePage from './pages/WelcomePage'
+import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* ── Public routes ──────────────────────────────────────────────── */}
         <Route path="/" element={<WelcomePage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/create-agreement" element={<CreateAgreementPage />} />
-        <Route path="/record-voice" element={<RecordVoicePage />} />
-        <Route path="/upload-audio" element={<UploadAudioPage />} />
-        <Route path="/manual-entry" element={<ManualEntryPage />} />
-        <Route path="/processing" element={<ProcessingScreen />} />
-        <Route path="/transcript-review" element={<TranscriptReviewScreen />} />
-        <Route path="/followup-questions" element={<FollowUpQuestionsPage />} />
-        <Route path="/agreement-preview" element={<AgreementPreviewPage />} />
-        <Route path="/share-agreement" element={<ShareAgreementPage />} />
-        <Route path="/agreement/:id" element={<AgreementDetailPage />} />
-        <Route path="/confirm/:agreementLink" element={<BuyerConfirmationPage />} />
+
+        {/*
+         * Buyer confirmation — public, no login required.
+         * Route param changed from :agreementLink → :shareToken to match
+         * the backend's Agreement.shareToken field.
+         */}
+        <Route path="/confirm/:shareToken" element={<BuyerConfirmationPage />} />
+
+        {/* ── Private routes (JWT required) ─────────────────────────────── */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/create-agreement" element={<ProtectedRoute><CreateAgreementPage /></ProtectedRoute>} />
+        <Route path="/record-voice" element={<ProtectedRoute><RecordVoicePage /></ProtectedRoute>} />
+        <Route path="/upload-audio" element={<ProtectedRoute><UploadAudioPage /></ProtectedRoute>} />
+        <Route path="/manual-entry" element={<ProtectedRoute><ManualEntryPage /></ProtectedRoute>} />
+        <Route path="/processing" element={<ProtectedRoute><ProcessingScreen /></ProtectedRoute>} />
+        <Route path="/transcript-review" element={<ProtectedRoute><TranscriptReviewScreen /></ProtectedRoute>} />
+        <Route path="/followup-questions" element={<ProtectedRoute><FollowUpQuestionsPage /></ProtectedRoute>} />
+        <Route path="/agreement-preview" element={<ProtectedRoute><AgreementPreviewPage /></ProtectedRoute>} />
+        <Route path="/share-agreement" element={<ProtectedRoute><ShareAgreementPage /></ProtectedRoute>} />
+        <Route path="/agreement/:id" element={<ProtectedRoute><AgreementDetailPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

@@ -6,39 +6,73 @@ import Card from '../components/Card'
 import MobileBottomNav from '../components/MobileBottomNav'
 import Navbar from '../components/Navbar'
 import StatusBadge from '../components/StatusBadge'
-import { getAgreements, getCurrentUser } from '../services/api'
-
-const stats = [
-  { key: 'total', label: 'Total Agreements', value: '3' },
-  { key: 'pending', label: 'Pending', value: '2' },
-  { key: 'confirmed', label: 'Confirmed', value: '1' },
-  { key: 'needs-changes', label: 'Needs Changes', value: '1' }
-]
+import { getDashboard, getAgreements, getStoredUser, clearSession } from '../services/api'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const [agreements, setAgreements] = useState([])
+  const [stats, setStats] = useState({ total: 0, pending: 0, confirmed: 0, needsChanges: 0, cancelled: 0 })
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
+    // Load user from localStorage (set during login/register)
+    setUser(getStoredUser())
+
     const load = async () => {
-      const [agreementData, userData] = await Promise.all([getAgreements(), getCurrentUser()])
-      setAgreements(agreementData)
-      setUser(userData)
+      try {
+        setLoading(true)
+        // Fetch dashboard stats + agreement list in parallel
+        const [dashData, agreementsData] = await Promise.all([
+          getDashboard(),
+          getAgreements({ limit: 50 }),
+        ])
+        setStats(dashData.stats)
+        setAgreements(dashData.recentAgreements || agreementsData.agreements || [])
+      } catch (err) {
+        setError(err.message || 'Failed to load dashboard data.')
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
 
+  // Map backend status strings to display labels and filter values
+  const normalizeStatus = (status) => {
+    // Backend uses: 'pending' | 'confirmed' | 'needs_changes' | 'cancelled'
+    // UI filter uses: 'pending' | 'confirmed' | 'needs-changes' | 'cancelled'
+    return status?.replace('_', '-') || 'pending'
+  }
+
   const filtered = useMemo(() => {
     return agreements.filter((agreement) => {
-      const matchesStatus = filter === 'all' ? true : agreement.status === filter
-      const matchesText = `${agreement.otherPartyName} ${agreement.product}`.toLowerCase().includes(search.toLowerCase())
+      const status = normalizeStatus(agreement.status)
+      const matchesStatus = filter === 'all' ? true : status === filter
+      // Support both backend shape (counterParty.name, agreedTerms.product)
+      // and any pre-normalised shape
+      const partyName = agreement.counterParty?.name || agreement.otherPartyName || ''
+      const product = agreement.agreedTerms?.product || agreement.product || ''
+      const matchesText = `${partyName} ${product}`.toLowerCase().includes(search.toLowerCase())
       return matchesStatus && matchesText
     })
   }, [agreements, filter, search])
+
+  const statCards = [
+    { key: 'total', label: 'Total Agreements', value: stats.total },
+    { key: 'pending', label: 'Pending', value: stats.pending },
+    { key: 'confirmed', label: 'Confirmed', value: stats.confirmed },
+    { key: 'needs-changes', label: 'Needs Changes', value: stats.needsChanges },
+  ]
+
+  const handleLogout = () => {
+    clearSession()
+    navigate('/login')
+  }
 
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
@@ -48,35 +82,50 @@ export default function DashboardPage() {
           <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/75">Voice Karar</p>
-              <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">Welcome back, {user?.name?.split(' ')[0] || 'Asha'}</h1>
-              <p className="mt-2 text-sm text-[var(--ink)]/80">{user?.businessName || 'Mehta Traders'}</p>
+              <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">
+                Welcome back, {user?.name?.split(' ')[0] || 'there'}
+              </h1>
+              <p className="mt-2 text-sm text-[var(--ink)]/80">{user?.email || ''}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Button onClick={() => navigate('/create-agreement')}>
                 <Plus className="mr-2 h-4 w-4" /> Create New Agreement
               </Button>
               <div className="relative">
-                <button onClick={() => setMenuOpen((value) => !value)} className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--seal)]">
-                  {user?.avatarUrl ? <img src={user.avatarUrl} alt="Profile" className="h-full w-full rounded-full object-cover" /> : <UserRound className="h-5 w-5" />}
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--seal)]"
+                >
+                  <UserRound className="h-5 w-5" />
                 </button>
                 {menuOpen ? (
                   <div className="absolute right-0 mt-2 w-40 border border-[var(--ledger-line)] bg-[var(--paper)] shadow-sm">
-                    <button onClick={() => navigate('/profile')} className="block w-full px-3 py-2 text-left text-sm">Profile</button>
-                    <button onClick={() => navigate('/dashboard')} className="block w-full px-3 py-2 text-left text-sm">Settings</button>
-                    <button onClick={() => navigate('/login')} className="block w-full px-3 py-2 text-left text-sm">Log Out</button>
+                    <button onClick={() => navigate('/profile')} className="block w-full px-3 py-2 text-left text-sm">
+                      Profile
+                    </button>
+                    <button onClick={handleLogout} className="block w-full px-3 py-2 text-left text-sm text-[var(--seal)]">
+                      Log Out
+                    </button>
                   </div>
                 ) : null}
               </div>
             </div>
           </header>
 
+          {error && (
+            <p className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
+
+          {/* Stats Cards */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {stats.map((stat) => (
+            {statCards.map((stat) => (
               <Card key={stat.key} className="border-t-4 border-t-[var(--seal)]">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--ink)]/60">{stat.label}</p>
-                    <p className="mt-2 font-['Source_Serif_4'] text-3xl tabular-nums">{stat.value}</p>
+                    <p className="mt-2 font-['Source_Serif_4'] text-3xl tabular-nums">
+                      {loading ? '—' : stat.value}
+                    </p>
                   </div>
                   <div className="rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] p-2 text-[var(--seal)]">
                     {stat.key === 'pending' ? <Mic className="h-4 w-4" /> : stat.key === 'confirmed' ? <FolderUp className="h-4 w-4" /> : <Search className="h-4 w-4" />}
@@ -86,15 +135,25 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          {/* Filter Bar */}
           <Card className="border-t-4 border-t-[var(--seal)]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <label className="flex flex-1 items-center gap-2 border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2">
                 <Search className="h-4 w-4 text-[var(--ink)]/60" />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search supplier or product" className="w-full bg-transparent text-sm outline-none" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search supplier or product"
+                  className="w-full bg-transparent text-sm outline-none"
+                />
               </label>
               <div className="flex flex-wrap gap-2">
                 {['all', 'pending', 'confirmed', 'needs-changes'].map((value) => (
-                  <button key={value} onClick={() => setFilter(value)} className={`border px-3 py-2 text-sm uppercase tracking-[0.16em] ${filter === value ? 'border-[var(--seal)] bg-[var(--seal)] text-[var(--paper)]' : 'border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--ink)]/70'}`}>
+                  <button
+                    key={value}
+                    onClick={() => setFilter(value)}
+                    className={`border px-3 py-2 text-sm uppercase tracking-[0.16em] ${filter === value ? 'border-[var(--seal)] bg-[var(--seal)] text-[var(--paper)]' : 'border-[var(--ledger-line)] bg-[var(--paper)] text-[var(--ink)]/70'}`}
+                  >
                     {value === 'all' ? 'All' : value === 'needs-changes' ? 'Needs Changes' : value.charAt(0).toUpperCase() + value.slice(1)}
                   </button>
                 ))}
@@ -102,6 +161,7 @@ export default function DashboardPage() {
             </div>
           </Card>
 
+          {/* Agreement List */}
           <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
             <Card>
               <div className="flex items-center justify-between">
@@ -109,37 +169,72 @@ export default function DashboardPage() {
                 <span className="text-sm text-[var(--ink)]/60">{filtered.length} shown</span>
               </div>
               <div className="mt-4 space-y-3">
-                {filtered.map((agreement) => (
-                  <div key={agreement.id} className="border border-[var(--ledger-line)] bg-[var(--paper)] p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold">{agreement.otherPartyName}</p>
-                          {agreement.source === 'upload' ? <FolderUp className="h-4 w-4 text-[var(--ink)]/60" /> : agreement.source === 'manual' ? <Search className="h-4 w-4 text-[var(--ink)]/60" /> : <Mic className="h-4 w-4 text-[var(--ink)]/60" />}
+                {loading ? (
+                  <p className="py-8 text-center text-sm text-[var(--ink)]/60">Loading agreements…</p>
+                ) : filtered.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-[var(--ink)]/60">No agreements yet. Create your first one!</p>
+                ) : (
+                  filtered.map((agreement) => {
+                    const id = agreement._id || agreement.id
+                    const partyName = agreement.counterParty?.name || agreement.otherPartyName || 'Other party'
+                    const product = agreement.agreedTerms?.product || agreement.product || 'Business agreement'
+                    const status = normalizeStatus(agreement.status)
+                    const createdAt = agreement.createdAt
+                      ? new Date(agreement.createdAt).toLocaleDateString('en-IN')
+                      : ''
+                    return (
+                      <div key={id} className="border border-[var(--ledger-line)] bg-[var(--paper)] p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold">{partyName}</p>
+                            </div>
+                            <p className="mt-1 text-sm text-[var(--ink)]/70">{product}</p>
+                          </div>
+                          <StatusBadge status={status} />
                         </div>
-                        <p className="mt-1 text-sm text-[var(--ink)]/70">{agreement.product}</p>
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--ink)]/70">
+                          <span>{createdAt}</span>
+                          <button
+                            onClick={() => navigate(`/agreement/${id}`)}
+                            className="text-[var(--seal)] underline"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
-                      <StatusBadge status={agreement.status} />
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--ink)]/70">
-                      <span>{agreement.createdAt}</span>
-                      <button onClick={() => navigate(`/agreement/${agreement.id}`)} className="text-[var(--seal)] underline">View Details</button>
-                    </div>
-                  </div>
-                ))}
+                    )
+                  })
+                )}
               </div>
             </Card>
 
             <Card className="border-t-4 border-t-[var(--seal)]">
               <h2 className="font-['Source_Serif_4'] text-2xl">Pending Actions</h2>
-              <p className="mt-3 text-sm text-[var(--ink)]/70">2 agreements waiting for buyer confirmation and 1 agreement needs your review.</p>
+              <p className="mt-3 text-sm text-[var(--ink)]/70">
+                {stats.pending > 0
+                  ? `${stats.pending} agreement${stats.pending > 1 ? 's' : ''} waiting for buyer confirmation.`
+                  : 'No pending actions.'}
+                {stats.needsChanges > 0
+                  ? ` ${stats.needsChanges} agreement${stats.needsChanges > 1 ? 's need' : ' needs'} your review.`
+                  : ''}
+              </p>
               <div className="mt-4 space-y-3">
-                <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
-                  <p className="font-semibold">2 agreements waiting for buyer confirmation</p>
-                </div>
-                <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
-                  <p className="font-semibold">1 agreement needs your review</p>
-                </div>
+                {stats.pending > 0 && (
+                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
+                    <p className="font-semibold">{stats.pending} agreement{stats.pending > 1 ? 's' : ''} waiting for buyer confirmation</p>
+                  </div>
+                )}
+                {stats.needsChanges > 0 && (
+                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm">
+                    <p className="font-semibold">{stats.needsChanges} agreement{stats.needsChanges > 1 ? 's need' : ' needs'} your review</p>
+                  </div>
+                )}
+                {stats.pending === 0 && stats.needsChanges === 0 && !loading && (
+                  <div className="border border-[var(--ledger-line)] bg-[var(--paper)] p-3 text-sm text-[var(--ink)]/60">
+                    <p>All agreements are up to date.</p>
+                  </div>
+                )}
               </div>
             </Card>
           </div>

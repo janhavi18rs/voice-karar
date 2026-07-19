@@ -8,6 +8,32 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Name is required'],
       trim: true,
     },
+    businessName: {
+      type: String,
+      required: [true, 'Business name is required'],
+      trim: true,
+    },
+    mobile: {
+      type: String,
+      required: [true, 'Mobile number is required'],
+      trim: true,
+      unique: true,
+    },
+    businessType: {
+      type: String,
+      trim: true,
+      default: 'Other',
+    },
+    businessCategory: {
+      type: String,
+      trim: true,
+      default: 'Other',
+    },
+    preferredLanguage: {
+      type: String,
+      trim: true,
+      default: 'Hindi',
+    },
     email: {
       type: String,
       required: [true, 'Email is required'],

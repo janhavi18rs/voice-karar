@@ -8,6 +8,7 @@ import authRoutes         from './routes/auth.routes.js';
 import agreementRoutes    from './routes/agreement.routes.js';
 import confirmationRoutes from './routes/confirmation.routes.js';
 import dashboardRoutes    from './routes/dashboard.routes.js';
+import aiRoutes           from './routes/ai.routes.js';
 
 // ─── Middleware Imports ───────────────────────────────────────────────────────
 import { notFound }    from './middleware/notFound.middleware.js';
@@ -34,11 +35,11 @@ app.use(
 
 /**
  * Body parsers
- * 10 mb limit covers base64-encoded audio thumbnails if the frontend
- * ever sends one; tighten this in production if not needed.
+ * 50 mb limit covers base64-encoded audio recordings sent from the frontend.
+ * The AI Agent also accepts up to 50 mb — keep both in sync.
  */
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/agreements',    agreementRoutes);
 app.use('/api/v1/confirmations', confirmationRoutes);
 app.use('/api/v1/dashboard',     dashboardRoutes);
+app.use('/api/v1/ai',            aiRoutes);
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 

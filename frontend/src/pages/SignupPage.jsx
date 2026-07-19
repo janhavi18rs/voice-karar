@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
-import { signupUser } from '../services/api'
+import { register } from '../services/api'
 
 const businessTypes = ['Manufacturer', 'Trader', 'Retailer', 'Service Provider', 'Other']
 const industries = ['Textiles', 'Agriculture', 'Electronics', 'Food', 'Construction', 'Other']
@@ -34,6 +34,8 @@ export default function SignupPage() {
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState('')
 
   const passwordScore = useMemo(() => {
     const value = form.password
@@ -69,21 +71,25 @@ export default function SignupPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    const result = await signupUser({
-      ...form,
-      name: form.name,
-      businessName: form.businessName,
-      email: form.email,
-      mobile: form.mobile,
-      businessType: form.businessType,
-      businessCategory: form.businessCategory,
-      preferredLanguage: form.preferredLanguage,
-      avatarUrl: ''
-    })
-
-    if (result?.ok) {
+    setLoading(true)
+    setServerError('')
+    try {
+      await register({
+        name: form.name,
+        businessName: form.businessName,
+        mobile: form.mobile,
+        email: form.email,
+        password: form.password,
+        businessType: form.businessType,
+        businessCategory: form.businessCategory,
+        preferredLanguage: form.preferredLanguage,
+      })
       setSubmitted(true)
       navigate('/dashboard')
+    } catch (err) {
+      setServerError(err.message || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -181,9 +187,15 @@ export default function SignupPage() {
                   </div>
                 ) : null}
 
-                <Button className="w-full" type="submit">
-                  Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                <Button className="w-full" type="submit" disabled={loading}>
+                  {loading ? 'Creating account…' : <>Create Account <ArrowRight className="ml-2 h-4 w-4" /></>}
                 </Button>
+
+                {serverError && (
+                  <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {serverError}
+                  </p>
+                )}
               </form>
             </Card>
           </div>

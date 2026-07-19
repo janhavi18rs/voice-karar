@@ -3,8 +3,7 @@ import ApiResponse from '../utils/ApiResponse.js';
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-    const result = await authService.registerUser({ name, email, password });
+    const result = await authService.registerUser(req.body);
     return res
       .status(201)
       .json(new ApiResponse(201, result, 'User registered successfully'));
