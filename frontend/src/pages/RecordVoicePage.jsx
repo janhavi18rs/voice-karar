@@ -3,6 +3,7 @@ import { Mic, Square, XCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
+import Navbar from '../components/Navbar'
 
 const formatTime = (seconds) => {
   const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
@@ -105,25 +106,26 @@ export default function RecordVoicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#fffaf7] text-[var(--ink)]">
+      <Navbar />
+      <div className="mx-auto flex min-h-[calc(100vh-104px)] max-w-6xl flex-col px-6 py-8">
         <header className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/75">Record voice summary</p>
-          <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">Speak naturally and let the record form itself.</h1>
-          <p className="text-sm text-[var(--ink)]/80">The mic button stays central, and the waveform reacts to your voice in real time.</p>
+          <p className="text-[14px] uppercase tracking-[0.32em] text-[var(--ink)]/75">Record voice summary</p>
+          <h1 className="font-['Source_Serif_4'] text-4xl font-extrabold leading-tight sm:text-5xl">Speak naturally and let the record form itself.</h1>
+          <p className="text-base leading-7 text-[var(--ink)]/80">The mic button stays central, and the waveform reacts to your voice in real time.</p>
         </header>
 
-        <main className="flex flex-1 items-center justify-center py-8">
-          <Card tone="stamp" className="w-full max-w-3xl border-t-4 border-t-[var(--seal)]">
-            <div className="flex flex-col items-center gap-6 text-center">
+        <main className="flex flex-1 items-center justify-center py-5">
+          <Card tone="stamp" className="w-full max-w-4xl border-t-4 border-t-[var(--seal)]">
+            <div className="flex min-h-[450px] flex-col items-center justify-center gap-6 text-center">
               {errorMsg && (
                 <div className="w-full rounded-none border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                   {errorMsg}
                 </div>
               )}
 
-              <div className={`flex h-32 w-32 items-center justify-center rounded-full border-2 border-[var(--seal)] ${isRecording ? 'bg-[var(--seal)] text-[var(--paper)]' : 'bg-[var(--paper)] text-[var(--seal)]'}`}>
-                <Mic className="h-12 w-12" />
+              <div className={`flex h-28 w-28 items-center justify-center rounded-full border-2 border-[var(--seal)] ${isRecording ? 'bg-[var(--seal)] text-[var(--paper)]' : 'bg-[var(--paper)] text-[var(--seal)]'}`}>
+                <Mic className="h-11 w-11" />
               </div>
 
               <div className="flex h-20 items-end gap-2">
@@ -132,7 +134,7 @@ export default function RecordVoicePage() {
                 ))}
               </div>
 
-              <p className="text-5xl font-semibold tabular-nums text-[var(--ink)]">{formatTime(elapsed)}</p>
+              <p className="text-5xl font-bold tabular-nums text-[var(--ink)]">{formatTime(elapsed)}</p>
 
               <div className="flex flex-wrap justify-center gap-3">
                 {!isRecording ? (

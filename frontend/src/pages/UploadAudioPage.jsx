@@ -3,6 +3,7 @@ import { FolderUp, Play, Pause, Plus, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
+import Navbar from '../components/Navbar'
 
 export default function UploadAudioPage() {
   const navigate = useNavigate()
@@ -63,24 +64,25 @@ export default function UploadAudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#fffaf7] text-[var(--ink)]">
+      <Navbar />
+      <div className="mx-auto flex min-h-[calc(100vh-104px)] max-w-6xl flex-col px-6 py-8">
         <header className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--ink)]/75">Upload audio</p>
-          <h1 className="font-['Source_Serif_4'] text-3xl sm:text-4xl">Drop in a voice note or call recording.</h1>
+          <p className="text-[14px] uppercase tracking-[0.32em] text-[var(--ink)]/75">Upload audio</p>
+          <h1 className="font-['Source_Serif_4'] text-4xl font-extrabold leading-tight sm:text-5xl">Drop in a voice note or call recording.</h1>
         </header>
 
-        <main className="flex flex-1 items-center py-8">
+        <main className="flex flex-1 items-center py-5">
           <Card tone="stamp" className="w-full border-t-4 border-t-[var(--seal)]">
             <div
               onDragOver={(event) => { event.preventDefault(); setDragActive(true) }}
               onDragLeave={() => setDragActive(false)}
               onDrop={handleDrop}
-              className={`rounded-none border-2 border-dashed p-8 text-center ${dragActive ? 'border-[var(--seal)] bg-[var(--seal)]/10' : 'border-[var(--ledger-line)]'}`}>
-              <FolderUp className="mx-auto h-10 w-10 text-[var(--seal)]" />
-              <p className="mt-4 font-['Source_Serif_4'] text-2xl">Drag and drop your audio file</p>
-              <p className="mt-2 text-sm text-[var(--ink)]/70">MP3, WAV, and M4A supported.</p>
-              <label className="mt-5 inline-flex cursor-pointer items-center gap-2 border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2 text-sm uppercase tracking-[0.16em]">
+              className={`rounded-md border-2 border-dashed p-10 text-center ${dragActive ? 'border-[var(--seal)] bg-[var(--seal)]/10' : 'border-[var(--ledger-line)]'}`}>
+              <FolderUp className="mx-auto h-11 w-11 text-[var(--seal)]" />
+              <p className="mt-6 font-['Source_Serif_4'] text-3xl font-bold">Drag and drop your audio file</p>
+              <p className="mt-3 text-base text-[var(--ink)]/70">MP3, WAV, and M4A supported.</p>
+              <label className="mt-6 inline-flex cursor-pointer items-center gap-3 border border-[var(--ledger-line)] bg-[var(--paper)] px-5 py-3 text-sm uppercase tracking-[0.2em]">
                 <Plus className="h-4 w-4" />
                 Choose file
                 <input type="file" accept="audio/*" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />

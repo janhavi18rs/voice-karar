@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Filter, FolderUp, Mic, Plus, Search, UserRound } from 'lucide-react'
+import { Filter, FolderUp, Mic, Plus, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import MobileBottomNav from '../components/MobileBottomNav'
 import Navbar from '../components/Navbar'
 import StatusBadge from '../components/StatusBadge'
-import { getDashboard, getAgreements, getStoredUser, clearSession } from '../services/api'
+import { getDashboard, getAgreements, getStoredUser } from '../services/api'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -15,7 +15,6 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [user, setUser] = useState(null)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -69,46 +68,21 @@ export default function DashboardPage() {
     { key: 'needs-changes', label: 'Needs Changes', value: stats.needsChanges },
   ]
 
-  const handleLogout = () => {
-    clearSession()
-    navigate('/login')
-  }
-
   return (
-    <div className="min-h-screen border-[6px] border-[#5543d8] bg-[var(--paper)] text-[var(--ink)]">
+    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       <Navbar />
-      <div className="px-7 py-9">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7">
+      <div className="px-7 py-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-10">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-[var(--seal)]">Voice Karar</p>
-              <h1 className="mt-2 font-['Source_Serif_4'] text-4xl font-bold sm:text-5xl">
+              <h1 className="font-['Source_Serif_4'] text-5xl font-extrabold leading-tight text-[#263438] sm:text-6xl">
                 Welcome back, {user?.name?.split(' ')[0] || 'there'}
               </h1>
-              <p className="mt-2 text-sm text-[var(--ink)]/80">{user?.email || ''}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={() => navigate('/create-agreement')}>
+              <Button onClick={() => navigate('/create-agreement')} className="min-h-16 rounded-lg px-8 text-base tracking-[0.24em]">
                 <Plus className="mr-2 h-4 w-4" /> Create New Agreement
               </Button>
-              <div className="relative">
-                <button
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--ledger-line)] bg-white text-[var(--seal)]"
-                >
-                  <UserRound className="h-5 w-5" />
-                </button>
-                {menuOpen ? (
-                  <div className="absolute right-0 mt-2 w-40 border border-[var(--ledger-line)] bg-[var(--paper)] shadow-sm">
-                    <button onClick={() => navigate('/profile')} className="block w-full px-3 py-2 text-left text-sm">
-                      Profile
-                    </button>
-                    <button onClick={handleLogout} className="block w-full px-3 py-2 text-left text-sm text-[var(--seal)]">
-                      Log Out
-                    </button>
-                  </div>
-                ) : null}
-              </div>
             </div>
           </header>
 
@@ -120,15 +94,15 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {statCards.map((stat) => (
               <Card key={stat.key} className="border-t-4 border-t-[var(--seal)]">
-                <div className="flex items-center justify-between">
+                <div className="flex min-h-24 items-center justify-between">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--ink)]/60">{stat.label}</p>
-                    <p className="mt-2 font-['Source_Serif_4'] text-3xl tabular-nums">
+                    <p className="text-[13px] uppercase tracking-[0.28em] text-[var(--ink)]/60">{stat.label}</p>
+                    <p className="mt-4 font-['Source_Serif_4'] text-4xl font-bold tabular-nums">
                       {loading ? '—' : stat.value}
                     </p>
                   </div>
-                  <div className="rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] p-2 text-[var(--seal)]">
-                    {stat.key === 'pending' ? <Mic className="h-4 w-4" /> : stat.key === 'confirmed' ? <FolderUp className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+                  <div className="rounded-full border border-[var(--ledger-line)] bg-[var(--paper)] p-4 text-[var(--seal)]">
+                    {stat.key === 'pending' ? <Mic className="h-5 w-5" /> : stat.key === 'confirmed' ? <FolderUp className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                   </div>
                 </div>
               </Card>
@@ -138,13 +112,13 @@ export default function DashboardPage() {
           {/* Filter Bar */}
           <Card className="border-t-4 border-t-[var(--seal)]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <label className="flex flex-1 items-center gap-2 border border-[var(--ledger-line)] bg-[var(--paper)] px-3 py-2">
-                <Search className="h-4 w-4 text-[var(--ink)]/60" />
+              <label className="flex flex-1 items-center gap-4 border border-[var(--ledger-line)] bg-[var(--paper)] px-5 py-4">
+                <Search className="h-5 w-5 text-[var(--ink)]/60" />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search supplier or product"
-                  className="w-full bg-transparent text-sm outline-none"
+                  className="w-full bg-transparent text-lg outline-none"
                 />
               </label>
               <div className="flex flex-wrap gap-2">

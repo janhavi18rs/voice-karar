@@ -6,7 +6,6 @@ import { clearSession } from '../services/api'
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/create-agreement', label: 'Agreements' },
-  { to: '/agreement-preview', label: 'Templates' },
 ]
 
 export default function Navbar() {
@@ -26,6 +25,19 @@ export default function Navbar() {
   const logout = () => {
     clearSession()
     navigate('/login')
+  }
+
+  const handleNav = (event, to) => {
+    if (to.includes('#')) {
+      event.preventDefault()
+      const [path, hash] = to.split('#')
+      if (location.pathname !== path) {
+        navigate(to)
+        return
+      }
+      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      window.history.replaceState(null, '', to)
+    }
   }
 
   return (
@@ -50,7 +62,8 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`pb-1 no-underline ${active ? 'border-b-2 border-[var(--seal)] text-[var(--seal)]' : 'text-[#5e5652]'}`}
+                  onClick={(event) => handleNav(event, item.to)}
+                  className={`relative pb-1 no-underline transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[var(--seal)] after:transition-all after:duration-200 hover:text-[var(--seal)] hover:after:w-full ${active ? 'text-[var(--seal)] after:w-full' : 'text-[#5e5652]'}`}
                 >
                   {item.label}
                 </Link>
