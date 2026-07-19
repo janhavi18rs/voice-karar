@@ -34,9 +34,9 @@ const extractWithFallback = (transcript = '') => {
   const locationMatch = text.match(/(?:delivered?\s+to|warehouse\s+in|located\s+in|at)\s+([A-Z][A-Za-z\s,.-]{2,60}?)(?:\.|,|$)/i);
   const conditionMatch = text.match(/(?:damaged|replacement|penalty|fine|conditions?)[^.]*\./i);
 
-  const party1 = 'Current user';
-  const party2 = normalizeText(partyMatch?.[1]) || 'Other party';
-  const product = normalizeText(productMatch?.[1]) || 'Business goods or services';
+  const party1 = 'Agreement Creator';
+  const party2 = normalizeText(partyMatch?.[1]) || 'Counterparty';
+  const product = normalizeText(productMatch?.[1]) || 'Commercial Deal';
   const paymentAmount = price ? `INR ${price}` : 'Not Specified';
   const paymentTerms = normalizeText(paymentMatch?.[1]) || 'Not Specified';
   const deliveryDate = normalizeText(deliveryMatch?.[1]) || 'Not Specified';
