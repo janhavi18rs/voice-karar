@@ -49,7 +49,7 @@ export const getUserDashboardStats = async (userId) => {
   const recentAgreements = await Agreement.find({ creator: creatorId })
     .sort({ createdAt: -1 })
     .limit(5)
-    .select('title status counterParty respondedAt createdAt updatedAt');
+    .select('title status counterParty agreedTerms shareToken respondedAt createdAt updatedAt');
 
   return {
     stats,

@@ -31,8 +31,8 @@ export default function DashboardPage() {
           getDashboard(),
           getAgreements({ limit: 50 }),
         ])
-        setStats(dashData.stats)
-        setAgreements(dashData.recentAgreements || agreementsData.agreements || [])
+        setStats(dashData.stats || { total: 0, pending: 0, confirmed: 0, needsChanges: 0, cancelled: 0 })
+        setAgreements(agreementsData.agreements || dashData.recentAgreements || [])
       } catch (err) {
         setError(err.message || 'Failed to load dashboard data.')
       } finally {
@@ -148,6 +148,9 @@ export default function DashboardPage() {
                 />
               </label>
               <div className="flex flex-wrap gap-2">
+                <span className="flex items-center text-[var(--ink)]/60">
+                  <Filter className="h-4 w-4" />
+                </span>
                 {['all', 'pending', 'confirmed', 'needs-changes'].map((value) => (
                   <button
                     key={value}
@@ -165,7 +168,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
             <Card>
               <div className="flex items-center justify-between">
-                <h2 className="font-['Source_Serif_4'] text-2xl">Recent Agreements</h2>
+                <h2 className="font-['Source_Serif_4'] text-2xl">Agreement History</h2>
                 <span className="text-sm text-[var(--ink)]/60">{filtered.length} shown</span>
               </div>
               <div className="mt-4 space-y-3">
