@@ -193,7 +193,15 @@ export class AgreementAgent {
    * Transcribes audio using Gemini's multimodal audio understanding capability
    */
   async transcribeAudio(audioBase64: string, mimeType: string): Promise<string> {
-    const cleanMime = (String(mimeType || "audio/webm").split(";")[0] || "audio/webm").trim().toLowerCase();
+    const raw = (String(mimeType || "audio/webm").split(";")[0] || "audio/webm").trim().toLowerCase();
+    let cleanMime = raw;
+    if (raw.includes("m4a") || raw.includes("mp4")) cleanMime = "audio/mp4";
+    else if (raw.includes("wav") || raw.includes("wave")) cleanMime = "audio/wav";
+    else if (raw.includes("mp3") || raw.includes("mpeg")) cleanMime = "audio/mp3";
+    else if (raw.includes("ogg")) cleanMime = "audio/ogg";
+    else if (raw.includes("aac")) cleanMime = "audio/aac";
+    else if (raw.includes("flac")) cleanMime = "audio/flac";
+
     const model = this.genAI.getGenerativeModel({
       model: this.modelName,
       systemInstruction: "You are an expert audio transcriber. Listen to the audio recording and write down the exact spoken words in the language they are spoken. Return only the transcription text. Do not add any summary, notes, or explanation.",

@@ -86,23 +86,41 @@ const extractWithFallback = (transcript = '') => {
 // ─── AI Agent caller ──────────────────────────────────────────────────────────
 
 const callAgent = async ({ transcript, audio, audioMimeType, outputLanguage, detectedLanguage }) => {
-  const response = await fetch(`${config.aiAgentUrl}/generate-agreement`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      transcript,
-      audio,
-      audio_mime_type: audioMimeType,
-      output_language: outputLanguage || 'English',
-      detected_language: detectedLanguage,
-    }),
-  });
+  const urlsToTry = [
+    config.aiAgentUrl,
+    'https://voice-karar-ai-agent.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5001',
+  ].filter(Boolean);
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.message || payload.details || `AI agent failed with ${response.status}`);
+  let lastError = null;
+  for (const baseUrl of urlsToTry) {
+    try {
+      const url = `${baseUrl.replace(/\/$/, '')}/generate-agreement`;
+      console.log(`[AI] Attempting call to AI Agent at: ${url}`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcript,
+          audio,
+          audio_mime_type: audioMimeType,
+          output_language: outputLanguage || 'English',
+          detected_language: detectedLanguage,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.message || payload.details || `AI agent at ${baseUrl} failed with ${response.status}`);
+      }
+      return payload;
+    } catch (err) {
+      console.warn(`[AI] Call to ${baseUrl} failed: ${err.message}`);
+      lastError = err;
+    }
   }
-  return payload;
+  throw lastError || new Error('All AI Agent endpoints failed');
 };
 
 const callAgentUpdate = async ({ id, structuredData }) => {
