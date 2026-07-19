@@ -80,3 +80,107 @@ backend/
   ```bash
   npm start
   ```
+
+---
+
+## API Testing with Keploy
+
+**Keploy** is an open-source API testing framework that automatically records and replays HTTP interactions. It enables you to test APIs without writing test code—just record real interactions and replay them.
+
+### Why Keploy?
+- **Record real API interactions** as test cases
+- **Replay tests** without external dependencies
+- **Automate** API testing in CI/CD pipelines
+- **Mock** external services
+- **Zero code** changes required
+
+### Quick Start
+
+#### Step 1: Install Keploy CLI
+```bash
+# macOS/Linux
+curl -O https://raw.githubusercontent.com/keploy/keploy/main/scripts/install.sh && source install.sh
+
+# Windows (PowerShell)
+iwr -useb https://raw.githubusercontent.com/keploy/keploy/main/scripts/install.ps1 | iex
+
+# Verify installation
+keploy --version
+```
+
+#### Step 2: Setup Test Environment
+```bash
+cd backend
+npm install
+cp .env.test.template .env.test
+```
+
+#### Step 3: Record Tests
+```bash
+npm run test:record
+
+# In another terminal, make API calls (e.g., using curl or Postman)
+# Tests are automatically saved to test/keploy/tests/
+# Press Ctrl+C to stop recording
+```
+
+#### Step 4: Run Tests
+```bash
+npm test
+
+# Output:
+# ✓ POST /api/v1/auth/register
+# ✓ POST /api/v1/auth/login
+# ✓ GET /api/v1/dashboard
+# ✓ POST /api/v1/agreements
+# Tests Passed: 7/7 | Success Rate: 100%
+```
+
+### API Coverage
+
+| Endpoint | Method | Status | Priority |
+|----------|--------|--------|----------|
+| `/api/v1/auth/register` | POST | Ready | 🔴 Critical |
+| `/api/v1/auth/login` | POST | Ready | 🔴 Critical |
+| `/api/v1/dashboard` | GET | Ready | 🔴 Critical |
+| `/api/v1/agreements` | POST | Ready | 🔴 Critical |
+| `/api/v1/agreements` | GET | Ready | 🔴 Critical |
+| `/api/v1/agreements/:id` | PATCH | Ready | 🔴 Critical |
+| `/api/v1/confirmations/:token` | POST | Ready | 🔴 Critical |
+
+**Total Endpoints**: 13 documented | **Critical Paths**: 7
+
+### Useful Commands
+```bash
+# Record tests
+npm run test:record
+
+# Run tests
+npm test
+
+# Run tests explicitly
+npm run test:run
+
+# Record without proxy (troubleshoot)
+npm run test:record:no-proxy
+```
+
+### Documentation
+- **Full Guide**: See `KEPLOY_GUIDE.md`
+- **Quick Reference**: See `KEPLOY_QUICK_REFERENCE.md`
+- **Integration Summary**: See `KEPLOY_INTEGRATION_SUMMARY.md`
+- **API Spec**: See `test/keploy/API_TEST_SPEC.js`
+- **Integration Report**: See `KEPLOY_INTEGRATION_REPORT.md`
+
+### Pre-Deployment Checklist
+- [ ] Install Keploy CLI: `keploy --version`
+- [ ] Record tests: `npm run test:record`
+- [ ] Run tests: `npm test`
+- [ ] Verify all critical endpoints pass
+- [ ] Commit to git
+- [ ] Add to CI/CD pipeline (example in `KEPLOY_GUIDE.md`)
+
+### Resources
+- **Keploy Docs**: https://docs.keploy.io
+- **GitHub**: https://github.com/keploy/keploy
+- **Discord**: https://discord.gg/uH3ynDtjJ8
