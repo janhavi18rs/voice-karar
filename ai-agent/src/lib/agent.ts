@@ -51,12 +51,10 @@ export class AgreementAgent {
   ): Promise<T> {
     const candidateModels = [
       "gemini-2.0-flash-lite",
-      this.modelName,
       "gemini-2.0-flash",
       "gemini-1.5-flash-latest",
       "gemini-2.0-flash-exp",
       "gemini-1.5-pro",
-      "gemini-1.5-flash",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: any = null;
