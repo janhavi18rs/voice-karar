@@ -23,6 +23,16 @@ export class AgreementAgent {
     try {
       return await fn();
     } catch (error: any) {
+      const status = error?.status;
+      const details = JSON.stringify(error?.errorDetails || []);
+      const isInvalidApiKey =
+        status === 400 &&
+        (details.includes("API_KEY_INVALID") || String(error?.message || "").includes("API key not valid"));
+
+      if (isInvalidApiKey) {
+        throw error;
+      }
+
       if (retries > 0) {
         console.warn(`[Agent Retry] Gemini API call failed: ${error.message || error}. Retrying in ${delayMs / 1000}s... (${retries} retries left)`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
