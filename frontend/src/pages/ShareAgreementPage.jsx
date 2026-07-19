@@ -1,18 +1,52 @@
 import { useState } from 'react'
-import { Copy, Share2, Stamp } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Copy, Eye, Share2, Stamp } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 
 export default function ShareAgreementPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [copied, setCopied] = useState(false)
-  const shareLink = 'https://voicekarar.in/confirm/agr-104'
+  const [copyError, setCopyError] = useState('')
+  const { agreementId, shareToken, shareUrl, draft } = location.state || {}
+  const token = shareToken || draft?.shareToken
+  const shareLink = shareUrl || (token ? `${window.location.origin}/confirm/${token}` : '')
+  const partyName = draft?.supplierName || draft?.otherPartyName || 'the other party'
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(shareLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1600)
+    if (!shareLink) return
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareLink)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = shareLink
+        textarea.setAttribute('readonly', '')
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopied(true)
+      setCopyError('')
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setCopyError('Unable to copy automatically. Select and copy the link manually.')
+    }
+  }
+
+  const handleWhatsAppShare = () => {
+    if (!shareLink) return
+    const message = `Please review this Voice Karar agreement: ${shareLink}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
+  }
+
+  const handlePreview = () => {
+    if (token) navigate(`/confirm/${token}`)
   }
 
   return (
@@ -29,19 +63,41 @@ export default function ShareAgreementPage() {
               <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[var(--seal)] bg-[var(--seal)]/10 text-[var(--seal)]">
                 <Stamp className="h-10 w-10" />
               </div>
-              <p className="max-w-xl text-lg text-[var(--ink)]/80">The other party does not need to install anything. They can open the link in any browser.</p>
-              <div className="w-full rounded-none border border-[var(--ledger-line)] bg-[var(--paper)] p-4 text-left">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--ink)]/60">Share link</p>
-                <p className="mt-2 font-mono text-sm tabular-nums">{shareLink}</p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Button onClick={handleCopy}>
-                  <Copy className="mr-2 h-4 w-4" /> {copied ? 'Copied' : 'Copy Link'}
-                </Button>
-                <Button variant="secondary" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Please review this agreement: ${shareLink}`)}`)}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share via WhatsApp
-                </Button>
-              </div>
+              {shareLink ? (
+                <>
+                  <p className="max-w-xl text-lg text-[var(--ink)]/80">
+                    Send this link to {partyName}. They can review and confirm the agreement in any browser.
+                  </p>
+                  <div className="w-full rounded-none border border-[var(--ledger-line)] bg-[var(--paper)] p-4 text-left">
+                    <p className="text-xs uppercase tracking-[0.16em] text-[var(--ink)]/60">Share link</p>
+                    <p className="mt-2 break-all font-mono text-sm tabular-nums">{shareLink}</p>
+                    {agreementId ? (
+                      <p className="mt-2 text-xs text-[var(--ink)]/50">Agreement ID: {agreementId}</p>
+                    ) : null}
+                  </div>
+                  {copyError ? (
+                    <p className="text-sm text-[var(--seal)]">{copyError}</p>
+                  ) : null}
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Button onClick={handleCopy}>
+                      <Copy className="mr-2 h-4 w-4" /> {copied ? 'Copied' : 'Copy Link'}
+                    </Button>
+                    <Button variant="secondary" onClick={handleWhatsAppShare}>
+                      <Share2 className="mr-2 h-4 w-4" /> Share via WhatsApp
+                    </Button>
+                    <Button variant="secondary" onClick={handlePreview}>
+                      <Eye className="mr-2 h-4 w-4" /> Preview Link
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="max-w-xl text-lg text-[var(--ink)]/80">
+                    No share token was found for this agreement. Return to the dashboard and open the agreement again.
+                  </p>
+                  <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+                </>
+              )}
             </div>
           </Card>
         </main>

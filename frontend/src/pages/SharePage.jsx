@@ -11,11 +11,18 @@ export default function SharePage() {
   const location = useLocation()
   const agreement = location.state?.agreement
   const [copied, setCopied] = useState(false)
-  const link = agreement?.id ? `${window.location.origin}/confirm/${agreement.id}` : `${window.location.origin}/confirm/agr-101`
+  const shareToken = agreement?.shareToken
+  const link = shareToken ? `${window.location.origin}/confirm/${shareToken}` : ''
 
   const handleCopy = async () => {
+    if (!link) return
     await navigator.clipboard.writeText(link)
     setCopied(true)
+  }
+
+  const handleWhatsAppShare = () => {
+    if (!link) return
+    window.open(`https://wa.me/?text=${encodeURIComponent(`Please review this agreement: ${link}`)}`, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -32,13 +39,13 @@ export default function SharePage() {
             <div className="space-y-5">
               <div className="rounded-none border border-[var(--ledger-line)] bg-[var(--paper)] p-4 text-sm text-[var(--ink)]/70">
                 <p className="mb-2 text-[11px] uppercase tracking-[0.2em]">Secure link</p>
-                <p className="break-all font-semibold text-[var(--ink)]">{link}</p>
+                <p className="break-all font-semibold text-[var(--ink)]">{link || 'Share token unavailable'}</p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button onClick={handleCopy}>
+                <Button onClick={handleCopy} disabled={!link}>
                   <Copy className="mr-2 h-4 w-4" /> {copied ? 'Copied' : 'Copy link'}
                 </Button>
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={handleWhatsAppShare} disabled={!link}>
                   <MessageSquare className="mr-2 h-4 w-4" /> Share on WhatsApp
                 </Button>
               </div>
@@ -53,7 +60,7 @@ export default function SharePage() {
             </div>
           </Card>
 
-          <Button variant="secondary" onClick={() => navigate(`/confirm/${agreement?.id || 'agr-101'}`)}>
+          <Button variant="secondary" onClick={() => link && navigate(`/confirm/${shareToken}`)} disabled={!link}>
           Preview public confirmation page
         </Button>
         </div>
