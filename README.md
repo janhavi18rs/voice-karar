@@ -8,12 +8,11 @@
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5--Flash-8E75C2?style=flat-square&logo=google-gemini&logoColor=white)](https://ai.google.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
-[🚀 Getting Started](#getting-started) · [🏗️ Architecture](#architecture) · [✨ Features](#features) · [📸 Screenshots](#screenshots) · [🌐 GitHub Repository](https://github.com/mayurigade-hub/voice-karar)
+[🚀 Getting Started](#getting-started) · [🏗️ Architecture](#architecture) · [✨ Features](#features) · [📸 Screenshots](#screenshots) 
 
 </div>
 
@@ -43,42 +42,42 @@ Once created, sellers generate secure confirmation links. Buyers open the link, 
 ### 🌐 Welcome & Authentication
 > *A clean, stamp-themed landing page utilizing vintage-ledger colors. Secure signup and login forms configure user sessions, storing JWT credentials locally.*
 
-![Welcome Landing Page](./assets/Welcome-Page.png)
+![Welcome Landing Page](./assets/landing-page.png)
 
 ---
 
 ### 🎙️ Record Voice Summary
 > *Live recording screen. Renders a central microphone button and a real-time reactive voice frequency wave visualizer. Features standard start/stop controls, elapsed recording timers, and unmount cleanups.*
 
-![Voice Recorder](./assets/Record-Voice.png)
+![Voice Recorder](./assets/Voice-Recorder.png)
 
 ---
 
 ### 📂 Upload Call Recording
 > *Drag-and-drop zone supporting MP3, WAV, and M4A uploads. Provides dynamic upload progress indicators alongside live file play/pause preview playbacks.*
 
-![Upload Audio](./assets/Upload-Audio.png)
+![Upload Audio](./assets/upload-voice.png)
 
 ---
 
 ### ❓ Dynamic Follow-Up Questions
 > *When critical terms (like payment terms or price) are missing from the audio summary, the AI generates target fields for clarification. The frontend guides creators through filling in exactly what was left out.*
 
-![Follow-Up Questions](./assets/Follow-up-Questions.png)
+![Follow-Up Questions](./assets/follow-up-questions.png)
 
 ---
 
 ### 📁 Agreement Preview & History Log
 > *The digitized contract is displayed as editable form fields side-by-side with a legal draft. Includes an immutable audit history log tracking actions like 'created', 'viewed', 'confirmed', and 'needs_changes'.*
 
-![Agreement Preview](./assets/Agreement-Preview.png)
+![Agreement Preview](./assets/dashboard.png)
 
 ---
 
 ### 👁️ Buyer Confirmation Portal
 > *A public portal accessed via share tokens. The counterparty reviews terms, signs their name to accept, or submits revisions to request changes.*
 
-![Buyer Confirmation](./assets/Buyer-Confirmation.png)
+![Buyer Confirmation](./assets/buyer-acceptance.png)
 
 ---
 
