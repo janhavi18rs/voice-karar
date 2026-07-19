@@ -51,10 +51,8 @@ export class AgreementAgent {
     fallbackFn?: () => T
   ): Promise<T> {
     const candidateModels = [
-      "gemini-2.0-flash-lite",
       "gemini-2.0-flash",
-      "gemini-1.5-flash-latest",
-      "gemini-2.0-flash-exp",
+      "gemini-2.0-flash-lite",
     ];
 
     let lastError: any = null;
@@ -67,6 +65,10 @@ export class AgreementAgent {
         return await this.withRetry(() => executeFn(model));
       } catch (err: any) {
         const errMsg = String(err?.message || "");
+        if (errMsg.includes("429") || errMsg.includes("quota")) {
+          console.warn(`[Agent Model Fallback] Rate limit 429 hit on ${m}, waiting 2s...`);
+          await new Promise(r => setTimeout(r, 2000));
+        }
         if (errMsg.includes("404") || errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("not found") || errMsg.includes("not supported")) {
           console.warn(`[Agent Model Fallback] Model ${m} failed (${errMsg.slice(0, 100)}), trying next candidate...`);
           lastError = err;
@@ -85,17 +87,18 @@ export class AgreementAgent {
   private async generateJson<T>(systemInstruction: string, promptContent: string): Promise<T> {
     return this.executeWithModelFallback<T>(systemInstruction, async (model) => {
       const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: promptContent }] }],
+        contents: [{ role: "user", parts: [{ text: `${systemInstruction}\n\nInput Text / Transcript:\n${promptContent}` }] }],
         generationConfig: {
           responseMimeType: "application/json",
           temperature: 0.1,
         },
       });
-      const text = result.response.text();
+      const rawText = result.response.text().trim();
+      const cleanedText = rawText.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
       try {
-        return JSON.parse(text) as T;
+        return JSON.parse(cleanedText) as T;
       } catch (error) {
-        console.error("Failed to parse Gemini JSON response:", text);
+        console.error("Failed to parse Gemini JSON response:", rawText);
         throw new Error("Invalid response format received from AI model.");
       }
     });
@@ -241,7 +244,7 @@ export class AgreementAgent {
     else if (raw.includes("aac")) cleanMime = "audio/aac";
     else if (raw.includes("flac")) cleanMime = "audio/flac";
 
-    const systemInstruction = "You are an expert audio transcriber. Listen to the audio recording and write down the exact spoken words in the language they are spoken. Return only the transcription text. Do not add any summary, notes, or explanation.";
+    const systemInstruction = "You are an expert audio transcriber. Listen to the audio recording carefully and write down the exact spoken words in the original language spoken (e.g. Hindi, Marathi, English, Tamil, etc.). Return ONLY the exact transcription text. Do not add any summary, notes, or explanation.";
 
     return this.executeWithModelFallback<string>(
       systemInstruction,
@@ -257,14 +260,13 @@ export class AgreementAgent {
                     mimeType: cleanMime
                   }
                 },
-                { text: "Please transcribe this audio." }
+                { text: "Listen to this audio recording and transcribe the complete spoken conversation in its original language." }
               ]
             }
           ]
         });
         return result.response.text().trim();
-      },
-      () => "I agree to supply 500 cotton bags to Rajat Traders for rupees 1800 per unit by 10th August 2026."
+      }
     );
   }
 
@@ -273,41 +275,50 @@ export class AgreementAgent {
    */
   extractFallbackData(transcript: string): AgreementStructuredData {
     const text = transcript || "";
-    const qtyMatch = text.match(/\b(\d+)\b/);
-    const quantityStr = qtyMatch ? String(qtyMatch[1]) : "500";
-    const priceMatch = text.match(/(?:rs\.?|inr|₹)\s?([\d,]+(?:\.\d+)?)/i) || text.match(/([\d,]+(?:\.\d+)?)\s*(?:rupees|rs|per unit|\/unit)/i);
-    const rawPrice = priceMatch && priceMatch[1] ? priceMatch[1].replace(/,/g, "") : "1800";
-    const priceStr = rawPrice || "1800";
-    const partyMatch = text.match(/(?:with|from|to|between)\s+([A-Z][A-Za-z0-9\s&.-]{2,40}?)(?:\s+to|\s+for|\s+will|\s+on|\.|,|$)/i);
-    const productMatch = text.match(/(?:supply|buy|purchase|deliver|sell|providing)\s+(?:\d+\s+)?([A-Za-z0-9\s-]{3,50}?)(?:\s+to|\s+for|\s+at|\s+by|\.|,|$)/i);
-    const deliveryMatch = text.match(/(?:delivery|deliver(?:ed)?|by)(?:\s+will\s+be|\s+by|\s+on|.*?\s+on)?\s+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s+[0-9]{4})?|[0-9]{4}-[0-9]{2}-[0-9]{2})/i);
 
-    const party1 = "Current User";
-    const party2 = (partyMatch && partyMatch[1] ? partyMatch[1].trim() : "") || "Rajat Traders";
-    const product = (productMatch && productMatch[1] ? productMatch[1].trim() : "") || "cotton bags";
-    const deliveryDate = (deliveryMatch && deliveryMatch[1] ? deliveryMatch[1].trim() : "") || "10th August 2026";
-    const totalCalc = Number(quantityStr) * Number(priceStr);
+    // Extract Hindi / English amounts
+    const amounts = Array.from(text.matchAll(/(?:rs\.?|inr|₹|रु\.|रुपये)\s?([\d,]+)|([\d,]+)\s*(?:रुपये|रु|rs|inr)/gi)).map(m => m[1] || m[2]).filter(Boolean);
+    const totalAmount = amounts[0] ? amounts[0].replace(/,/g, "") : undefined;
+    const advanceAmount = amounts[1] ? amounts[1].replace(/,/g, "") : undefined;
+
+    // Detect Hindi / English contract purpose
+    let product = "Commercial Agreement";
+    if (/वेबसाइट|website|ई\s*कॉमर्स|e-commerce/i.test(text)) {
+      product = "ई-कॉमर्स वेबसाइट विकास (Website Development)";
+    } else if (/कार|गाडी|car|vehicle|MH\s*\d+/i.test(text)) {
+      product = "वाहन भाडे करार (Vehicle Rental)";
+    } else if (/कॉटन बैग|bags|कपड़े|cloth|goods|supply/i.test(text)) {
+      product = "माल पुरवठा करार (Goods Supply)";
+    }
+
+    // Detect Party Names (Hindi / English)
+    const party1Match = text.match(/(?:अमित|संजय|राहुल|प्रशांत|अनिकेत|[A-Z][A-Za-z0-9\s&.-]{2,30})/i);
+    const party2Match = text.match(/(?:जोशी|पाटील|काळे|राजेश|ट्रेडर्स|[A-Z][A-Za-z0-9\s&.-]{2,30})/i);
+
+    const party1 = party1Match ? party1Match[0].trim() : "First Party";
+    const party2 = party2Match ? party2Match[0].trim() : "Second Party";
+    const paymentTerms = advanceAmount ? `₹${advanceAmount} Advance, Balance on Completion` : "As agreed";
 
     return {
       party_1: party1,
       party_2: party2,
       agreement_purpose: product,
-      quantity: quantityStr,
-      unit_price: `₹${priceStr}`,
-      total_amount: isNaN(totalCalc) ? `₹${priceStr}` : `₹${totalCalc}`,
-      payment_amount: `INR ${priceStr}`,
-      payment_terms: "50% advance",
-      agreement_duration: deliveryDate,
+      quantity: "1",
+      unit_price: totalAmount ? `₹${totalAmount}` : "Not Specified",
+      total_amount: totalAmount ? `₹${totalAmount}` : "Not Specified",
+      payment_amount: totalAmount ? `INR ${totalAmount}` : "Not Specified",
+      payment_terms: paymentTerms,
+      agreement_duration: "Not Specified",
       responsibilities: {
         party_1: ["Make payment as agreed"],
-        party_2: [`Supply ${quantityStr} ${product}`],
+        party_2: [`Fulfill obligations for ${product}`],
       },
-      important_dates: [deliveryDate],
+      important_dates: ["Not Specified"],
       witnesses: ["Not Specified"],
       special_conditions: ["Not Specified"],
       location: "Not Specified",
       delivery_location: "Not Specified",
-      summary: "Not Specified",
+      summary: text,
     };
   }
 

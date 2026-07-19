@@ -87,11 +87,8 @@ app.post("/generate-agreement", async (req: Request, res: Response): Promise<voi
       try {
         activeTranscript = await agent.transcribeAudio(audio, audio_mime_type!);
       } catch (err: any) {
-        console.warn("Audio transcription failed, using fallback audio transcript:", err);
-        activeTranscript = transcript || "I agree to supply 500 cotton bags to Rajat Traders for rupees 1800 per unit by 10th August 2026.";
-      }
-      if (!activeTranscript || activeTranscript.trim().length === 0) {
-        activeTranscript = "I agree to supply 500 cotton bags to Rajat Traders for rupees 1800 per unit by 10th August 2026.";
+        console.warn("Audio transcription failed:", err);
+        activeTranscript = transcript || "";
       }
       console.log("Transcription result:", activeTranscript);
     }

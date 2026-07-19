@@ -3,12 +3,24 @@ import {
   Folder,
   Mic,
   PenLine,
+  Sparkles,
   Upload,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
 const paths = [
+  {
+    title: 'AI Agent Pipeline',
+    description:
+      'Launch the full 5-step AI Agent dashboard: Multimodal audio transcription, Language Detection, Extraction, Anti-Hallucination & Legal Drafting.',
+    icon: Sparkles,
+    iconTone: 'bg-[#943d2c] text-white',
+    buttonLabel: 'Launch AI Agent',
+    route: '/ai-agent',
+    actionIcon: ArrowRight,
+    primary: true,
+  },
   {
     title: 'Record Voice Summary',
     description:
@@ -18,7 +30,6 @@ const paths = [
     buttonLabel: 'Start Recording',
     route: '/record-voice',
     actionIcon: ArrowRight,
-    primary: true,
   },
   {
     title: 'Upload Audio',

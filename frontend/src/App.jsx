@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import AiAgentPage from './pages/AiAgentPage'
 import AgreementDetailPage from './pages/AgreementDetailPage'
 import AgreementPreviewPage from './pages/AgreementPreviewPage'
 import BuyerConfirmationPage from './pages/BuyerConfirmationPage'
@@ -37,6 +38,7 @@ function App() {
         {/* ── Private routes (JWT required) ─────────────────────────────── */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/ai-agent" element={<ProtectedRoute><AiAgentPage /></ProtectedRoute>} />
         <Route path="/create-agreement" element={<ProtectedRoute><CreateAgreementPage /></ProtectedRoute>} />
         <Route path="/record-voice" element={<ProtectedRoute><RecordVoicePage /></ProtectedRoute>} />
         <Route path="/upload-audio" element={<ProtectedRoute><UploadAudioPage /></ProtectedRoute>} />

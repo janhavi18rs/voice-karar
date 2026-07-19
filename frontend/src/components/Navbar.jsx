@@ -5,6 +5,7 @@ import { clearSession } from '../services/api'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/ai-agent', label: 'AI Agent' },
   { to: '/create-agreement', label: 'Agreements' },
 ]
 
