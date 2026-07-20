@@ -8,7 +8,7 @@ const industries = ['Textiles', 'Agriculture', 'Electronics', 'Food', 'Construct
 const languages = ['Hindi', 'English', 'Marathi', 'Gujarati', 'Tamil', 'Telugu', 'Kannada', 'Bengali', 'Other']
 
 function validateEmail(v) { return /.+@.+\..+/.test(v) }
-function validateMobile(v) { return /^\+?[0-9]{10,12}$/.test(v) }
+function validateMobile(v) { return /^\+?[0-9]{10,15}$/.test(v) }
 
 const strengthColors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-[#4d9178]']
 const strengthLabels = ['Very weak', 'Weak', 'Fair', 'Strong']
