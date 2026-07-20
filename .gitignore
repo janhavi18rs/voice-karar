@@ -6,6 +6,10 @@ node_modules/
 dist/
 build/
 **/dist/
+ai-agent/src/**/*.js
+ai-agent/src/**/*.js.map
+ai-agent/src/**/*.d.ts
+ai-agent/src/**/*.d.ts.map
 
 # Environment files
 .env
