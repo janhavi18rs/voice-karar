@@ -13,12 +13,12 @@ export const registerSchema = {
     businessName: {
       required: true,
       type: 'string',
-      min: 2,
+      min: 1,
     },
     mobile: {
       required: true,
       type: 'string',
-      regex: /^\+?[0-9]{10,12}$/,
+      regex: /^\+?[0-9]{10,15}$/,
       message: 'mobile must be a valid phone number',
     },
     email: {
