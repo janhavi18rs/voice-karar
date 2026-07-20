@@ -66,7 +66,7 @@ export default function SignupPage() {
         businessType: form.businessType, businessCategory: form.businessCategory,
         preferredLanguage: form.preferredLanguage,
       })
-      navigate('/dashboard')
+      navigate('/create-agreement')
     } catch (err) {
       setServerError(err.message || 'Registration failed. Please try again.')
     } finally {

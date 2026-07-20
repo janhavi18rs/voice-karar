@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError('')
     try {
       await login({ email: form.email, password: form.password })
-      navigate('/dashboard')
+      navigate('/create-agreement')
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.')
     } finally {
